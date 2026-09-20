@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debt & Salary Tracker · Payments + History</title>
+    <title>Debt & Salary Tracker · Cloud Sync</title>
     <style>
         * {
             box-sizing: border-box;
@@ -275,7 +275,7 @@
         }
         .btn-primary:hover { background: #135b82; border-color: #135b82; }
 
-        .debt-list { margin-top: 0.5rem; max-height: 400px; overflow-y: auto; padding-right: 0.25rem; }
+        .debt-list { margin-top: 0.5rem; max-height: 480px; overflow-y: auto; padding-right: 0.25rem; }
         .debt-item {
             display: flex;
             align-items: center;
@@ -295,12 +295,20 @@
         .debt-item.paid {
             border-left-color: #27ae60;
             background: #f0fbf5;
-            opacity: 0.85;
         }
         .debt-item.paid .debt-name,
         .debt-item.paid .debt-amount {
             text-decoration: line-through;
             opacity: 0.7;
+        }
+        .debt-item.nearly-done {
+            border-left-color: #f39c12;
+            background: linear-gradient(90deg, #fffbf0 0%, #faf5ff 100%);
+        }
+        .debt-item.completed {
+            opacity: 0.65;
+            background: #f5f5f5;
+            border-left-color: #95a5a6;
         }
         .debt-item .debt-info { display: flex; flex-direction: column; gap: 0.25rem; flex: 2; min-width: 150px; }
         .debt-item .debt-name {
@@ -363,6 +371,123 @@
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
+        }
+        .almost-badge {
+            background: #f39c12;
+            color: white;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            animation: glow 2s infinite;
+        }
+        .final-badge {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            animation: glow 1.5s infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 4px rgba(243, 156, 18, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.9); }
+        }
+        .completed-badge {
+            background: #7f8c8d;
+            color: white;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        /* Installment progress bar */
+        .inst-progress {
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 0.8rem;
+            padding: 0.5rem 0.7rem;
+            border: 1px solid #e8d5f5;
+        }
+        .inst-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #4a1e6e;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+        .inst-progress-header .months-left {
+            color: #6a4c93;
+        }
+        .inst-progress-header .months-left.urgent {
+            color: #c0392b;
+            font-weight: 700;
+        }
+        .inst-progress-bar {
+            height: 8px;
+            background: #e8d5f5;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .inst-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8e44ad, #b07cd6);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            position: relative;
+        }
+        .inst-progress-fill.nearly-done {
+            background: linear-gradient(90deg, #e67e22, #f39c12);
+        }
+        .inst-progress-fill.completed {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+        .inst-dots {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .inst-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e8d5f5;
+            border: 1.5px solid #d0b8e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: white;
+            font-weight: 700;
+        }
+        .inst-dot.paid {
+            background: #27ae60;
+            border-color: #1e8449;
+        }
+        .inst-dot.current {
+            background: #f39c12;
+            border-color: #e67e22;
+            animation: dotPulse 1.5s infinite;
+        }
+        .inst-dot.future {
+            background: #f5eefa;
+            border-color: #d0b8e8;
+        }
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
         }
 
         .debt-item .debt-amount {
@@ -608,9 +733,7 @@
         .history-stat .val.balance-pos { color: #27ae60; }
         .history-stat .val.balance-neg { color: #c0392b; }
 
-        .history-debts {
-            margin-top: 1rem;
-        }
+        .history-debts { margin-top: 1rem; }
         .history-debt-row {
             display: flex;
             justify-content: space-between;
@@ -717,7 +840,7 @@
         <span>☁️ cloud sync</span>
     </h1>
     <div class="subhead">
-        Track, pay, and review your debts — all synced.
+        Track installments — see how close you are to finishing!
     </div>
 
     <!-- SYNC BAR -->
@@ -839,7 +962,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="installment-info">ℹ️ Monthly amount is applied each active month.</div>
+                    <div class="installment-info">ℹ️ Progress is tracked automatically each month.</div>
                 </div>
 
                 <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-top: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
@@ -1002,14 +1125,13 @@
     // 🔥 PASTE YOUR FIREBASE CONFIG HERE
     // ============================================================
     const firebaseConfig = {
-  apiKey: "AIzaSyA8lTVksqU-A6jLY1OMOlEqjO3mlmlNmno",
-  authDomain: "expense-tracker-3dad7.firebaseapp.com",
-  projectId: "expense-tracker-3dad7",
-  storageBucket: "expense-tracker-3dad7.firebasestorage.app",
-  messagingSenderId: "213553460204",
-  appId: "1:213553460204:web:a6a688a5519b6974d4c6c9",
-  measurementId: "G-J2RCKDKHPF"
-};
+        apiKey: "PASTE_YOUR_API_KEY",
+        authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+        projectId: "PASTE_YOUR_PROJECT_ID",
+        storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+        messagingSenderId: "PASTE_YOUR_SENDER_ID",
+        appId: "PASTE_YOUR_APP_ID"
+    };
     // ============================================================
 
     const app = initializeApp(firebaseConfig);
@@ -1018,7 +1140,7 @@
     // ---- State ----
     let debts = [];
     let nextId = 1;
-    let payments = {};        // { "YYYY-MM": { debtId: { paid: true, paidAt: ISO, amount: number } } }
+    let payments = {};        // { "YYYY-MM": { debtId: { paid: true, paidAt, amount, name, category } } }
     let currentType = 'onetime';
     let syncCode = null;
     let unsubscribe = null;
@@ -1029,7 +1151,7 @@
     let editingDebtId = null;
     let editingType = 'onetime';
 
-    // Undo system
+    // Undo
     let lastDeleted = null;
     let undoTimer = null;
 
@@ -1079,7 +1201,6 @@
     const statusText = $('statusText');
     const historyContainer = $('historyContainer');
 
-    // Undo toast
     const undoToast = $('undoToast');
     const undoBtn = $('undoBtn');
     const undoMessage = $('undoMessage');
@@ -1141,6 +1262,75 @@
         return !!(payments[key] && payments[key][debtId] && payments[key][debtId].paid);
     }
 
+    // ---- Installment progress calculation ----
+    function getInstallmentProgress(debt, year, month) {
+        if (!debt.isInstallment) return null;
+        const start = new Date(debt.startYear, debt.startMonth, 1);
+        const end = new Date(debt.startYear, debt.startMonth + debt.months, 1);
+        const check = new Date(year, month, 1);
+
+        if (check < start) {
+            return {
+                status: 'upcoming',
+                currentMonth: 0,
+                totalMonths: debt.months,
+                monthsLeft: debt.months,
+                monthsPaid: 0,
+                percent: 0
+            };
+        }
+        if (check >= end) {
+            return {
+                status: 'completed',
+                currentMonth: debt.months,
+                totalMonths: debt.months,
+                monthsLeft: 0,
+                monthsPaid: debt.months,
+                percent: 100
+            };
+        }
+        // Active — count how many months have been paid
+        const monthsSinceStart = (year - debt.startYear) * 12 + (month - debt.startMonth);
+        const currentMonthNum = monthsSinceStart + 1; // 1-indexed
+        const monthsLeft = debt.months - monthsSinceStart;
+
+        // Count how many months in this installment have been marked paid
+        let monthsPaid = 0;
+        for (let i = 0; i < monthsSinceStart; i++) {
+            const d = new Date(debt.startYear, debt.startMonth + i, 1);
+            const key = getYearMonthKey(d.getFullYear(), d.getMonth());
+            if (payments[key] && payments[key][debt.id] && payments[key][debt.id].paid) {
+                monthsPaid++;
+            }
+        }
+
+        const percent = Math.round((monthsPaid / debt.months) * 100);
+
+        return {
+            status: 'active',
+            currentMonth: currentMonthNum,
+            totalMonths: debt.months,
+            monthsLeft: monthsLeft,
+            monthsPaid: monthsPaid,
+            percent: percent,
+            monthsSinceStart
+        };
+    }
+
+    // Helper: get the paid status of each month in an installment
+    function getInstallmentMonthStatus(debt, currentYear, currentMonth) {
+        const statuses = [];
+        for (let i = 0; i < debt.months; i++) {
+            const d = new Date(debt.startYear, debt.startMonth + i, 1);
+            const key = getYearMonthKey(d.getFullYear(), d.getMonth());
+            const paid = !!(payments[key] && payments[key][debt.id] && payments[key][debt.id].paid);
+            const isCurrent = (d.getFullYear() === currentYear && d.getMonth() === currentMonth);
+            const isFuture = (d.getFullYear() > currentYear) || (d.getFullYear() === currentYear && d.getMonth() > currentMonth);
+            statuses.push({ monthIndex: i, paid, isCurrent, isFuture });
+        }
+        return statuses;
+    }
+
     // ---- Decimal input ----
     function enableDecimalInput(el, allowDecimal = true) {
         if (!el) return;
@@ -1177,7 +1367,7 @@
         });
     }
 
-    // ---- Active debts (current month) ----
+    // ---- Active debts ----
     function getActiveDebts() {
         const { year, month } = getCurrentYearMonth();
         return debts.filter(d => {
@@ -1337,7 +1527,7 @@
         renderHistory();
     }
 
-    // ---- Undo system ----
+    // ---- Undo ----
     function showUndoToast(message) {
         undoMessage.textContent = message;
         undoToast.classList.add('show');
@@ -1403,10 +1593,11 @@
             const upDisabled = isFirst ? 'disabled' : '';
             const downDisabled = isLast ? 'disabled' : '';
 
-            // Determine if this debt is active this month and whether paid
             let activeThisMonth = false;
+            let progress = null;
             if (debt.isInstallment) {
                 activeThisMonth = isInstallmentActive(debt, curYear, curMonth);
+                progress = getInstallmentProgress(debt, curYear, curMonth);
             } else if (debt.dueDate) {
                 const dt = new Date(debt.dueDate + 'T00:00:00');
                 if (!isNaN(dt.getTime())) {
@@ -1414,7 +1605,6 @@
                 }
             }
             const paid = activeThisMonth && isPaid(debt.id, curYear, curMonth);
-            const paidBadge = paid ? `<span class="paid-badge">✓ Paid</span>` : '';
 
             if (debt.isInstallment) {
                 statusClass = 'installment';
@@ -1425,8 +1615,59 @@
                 dateDisplay = `${sm} ${debt.startYear} – ${em} ${ey}`;
                 const dueDay = debt.dueDay || 15;
                 cutoffLabel = getCutoffFromDay(dueDay) === 1 ? `1st cutoff (day ${dueDay})` : `2nd cutoff (day ${dueDay})`;
-                const progress = activeThisMonth ? '🟢 Active' : '⚪ Done';
+
+                // Progress-driven classes and badges
+                const prog = progress || { status: 'active', monthsLeft: debt.months, monthsPaid: 0, percent: 0, totalMonths: debt.months, currentMonth: 1 };
+                if (prog.status === 'completed') {
+                    statusClass += ' completed';
+                } else if (prog.monthsLeft <= 2 && prog.status === 'active') {
+                    statusClass += ' nearly-done';
+                }
                 if (paid) statusClass += ' paid';
+
+                // Build badges
+                let extraBadges = '';
+                if (prog.status === 'completed') {
+                    extraBadges = `<span class="completed-badge">✓ Completed</span>`;
+                } else if (prog.status === 'upcoming') {
+                    extraBadges = `<span class="installment-badge">Starts ${monthNames[debt.startMonth]} ${debt.startYear}</span>`;
+                } else if (prog.monthsLeft === 1) {
+                    extraBadges = `<span class="final-badge">🔥 FINAL MONTH!</span>`;
+                } else if (prog.monthsLeft === 2) {
+                    extraBadges = `<span class="almost-badge">⚡ Almost done — 2 left</span>`;
+                } else if (prog.monthsLeft === 3) {
+                    extraBadges = `<span class="almost-badge">⏳ 3 months left</span>`;
+                }
+                if (paid) extraBadges += `<span class="paid-badge">✓ Paid</span>`;
+
+                // Build progress bar HTML (only if active or completed)
+                let progressHTML = '';
+                if (prog.status !== 'upcoming') {
+                    const fillClass = prog.status === 'completed' ? 'completed' : (prog.monthsLeft <= 2 ? 'nearly-done' : '');
+                    const monthStatuses = getInstallmentMonthStatus(debt, curYear, curMonth);
+                    const dotsHTML = monthStatuses.map((s, i) => {
+                        let dotClass = 'inst-dot';
+                        if (s.paid) dotClass += ' paid';
+                        else if (s.isCurrent) dotClass += ' current';
+                        else if (s.isFuture) dotClass += ' future';
+                        return `<div class="${dotClass}" title="Month ${i+1}${s.paid ? ' · Paid' : ''}${s.isCurrent ? ' · Current' : ''}">${s.paid ? '✓' : (i+1)}</div>`;
+                    }).join('');
+
+                    progressHTML = `
+                        <div class="inst-progress">
+                            <div class="inst-progress-header">
+                                <span>📊 Progress: ${prog.monthsPaid} of ${prog.totalMonths} months paid</span>
+                                <span class="months-left ${prog.monthsLeft <= 2 ? 'urgent' : ''}">
+                                    ${prog.status === 'completed' ? '✓ Done!' : `${prog.monthsLeft} month${prog.monthsLeft !== 1 ? 's' : ''} left`}
+                                </span>
+                            </div>
+                            <div class="inst-progress-bar">
+                                <div class="inst-progress-fill ${fillClass}" style="width: ${prog.percent}%"></div>
+                            </div>
+                            <div class="inst-dots">${dotsHTML}</div>
+                        </div>
+                    `;
+                }
 
                 html += `
                     <div class="debt-item ${statusClass}" data-id="${debt.id}">
@@ -1435,13 +1676,13 @@
                                 <span>🔁</span> ${escapeHtml(debt.name)}
                                 ${catBadge}
                                 <span class="installment-badge">${debt.months} months</span>
-                                ${paidBadge}
-                                <span class="date-badge">${progress}</span>
+                                ${extraBadges}
                             </div>
                             <div class="debt-meta">
                                 <span class="debt-date">📅 ${dateDisplay}</span>
                                 <span class="month-badge">${cutoffLabel}</span>
                             </div>
+                            ${progressHTML}
                         </div>
                         <div class="debt-actions">
                             <span class="debt-amount">${formatCurrency(debt.amount)}/mo</span>
@@ -1453,6 +1694,7 @@
                         </div>
                     </div>`;
             } else {
+                // One-time debt (unchanged)
                 if (debt.dueDate) {
                     const dd = new Date(debt.dueDate + 'T00:00:00');
                     if (!isNaN(dd.getTime())) {
@@ -1466,6 +1708,7 @@
                     } else { dateDisplay = 'Invalid'; badgeText = '📅 Invalid'; }
                 } else { dateDisplay = 'No date'; badgeText = '📅 No date'; }
                 if (paid) statusClass += ' paid';
+                const paidBadge = paid ? `<span class="paid-badge">✓ Paid</span>` : '';
 
                 html += `
                     <div class="debt-item ${statusClass}" data-id="${debt.id}">
@@ -1524,7 +1767,14 @@
                 const paid = isPaid(d.id, year, month);
                 let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
                     (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
-                return `<div class="schedule-item ${paid?'is-paid':''}"><span>${cat.emoji} ${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span>${paid?' ✓':''}</span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
+                let suffix = '';
+                if (d.isInstallment && !paid) {
+                    const prog = getInstallmentProgress(d, year, month);
+                    if (prog && prog.monthsLeft <= 2 && prog.status === 'active') {
+                        suffix = ` <span style="color:#f39c12;font-weight:700;">· ${prog.monthsLeft} left!</span>`;
+                    }
+                }
+                return `<div class="schedule-item ${paid?'is-paid':''}"><span>${cat.emoji} ${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span>${paid?' ✓':''}${suffix}</span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
             }).join('');
 
             if (c1.length > 0) {
@@ -1553,9 +1803,7 @@
         const totalActiveDebt = activeUnpaid.reduce((s, d) => s + d.amount, 0);
         const totalActiveDebtAll = activeAll.reduce((s, d) => s + d.amount, 0);
         const balance = totalSalary - totalActiveDebt;
-
         const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
-
         const paidCount = activeAll.filter(d => isPaid(d.id, year, month)).length;
 
         totalSalaryDisplay.textContent = formatCurrency(totalSalary);
@@ -1581,7 +1829,7 @@
 
     // ---- Rendering: History ----
     function renderHistory() {
-        const keys = Object.keys(payments).sort().reverse(); // newest first
+        const keys = Object.keys(payments).sort().reverse();
         if (keys.length === 0) {
             historyContainer.innerHTML = `
                 <div class="empty-history">
@@ -1591,7 +1839,6 @@
             return;
         }
 
-        // Group by year for cleaner display
         const currentKey = getYearMonthKey(...Object.values(getCurrentYearMonth()));
 
         let html = '';
@@ -1607,8 +1854,6 @@
             }));
 
             const totalPaid = entries.reduce((s, e) => s + (e.amount || 0), 0);
-
-            // Find the salary for that month (use current salary as fallback)
             const salary = (getSalary1() + getSalary2());
             const monthBalance = salary - totalPaid;
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debt & Salary Tracker · Cloud Sync</title>
+    <title>Debt & Salary Tracker · Payments + History</title>
     <style>
         * {
             box-sizing: border-box;
@@ -52,6 +52,35 @@
             padding-left: 1rem;
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #e3f0f7;
+            padding: 0.4rem;
+            border-radius: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.7rem 0.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f4b61;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #1e6f9f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         /* Sync bar */
         .sync-bar {
             display: flex;
@@ -60,15 +89,11 @@
             background: #143b4e;
             padding: 0.85rem 1.2rem;
             border-radius: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
             color: white;
         }
-        .sync-bar label {
-            font-size: 0.85rem;
-            color: #b0d0e0;
-            font-weight: 500;
-        }
+        .sync-bar label { font-size: 0.85rem; color: #b0d0e0; font-weight: 500; }
         .sync-bar input {
             flex: 1;
             min-width: 140px;
@@ -102,26 +127,44 @@
         .sync-connect:hover { background: #1e6f9f; }
         .sync-copy { background: #1d4c63; color: #b0d0e0; }
         .sync-copy:hover { background: #2b5f78; color: white; }
-        .sync-status {
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-weight: 500;
-        }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #888;
-        }
+        .sync-status { font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #888; }
         .dot.online { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
         .dot.offline { background: #f87171; }
         .dot.syncing { background: #fbbf24; animation: pulse 1s infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Undo toast */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: #143b4e;
+            color: white;
+            padding: 0.85rem 1.2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px -8px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            max-width: 90vw;
         }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast button {
+            background: #2c8ec0;
+            border: none;
+            color: white;
+            padding: 0.4rem 0.9rem;
+            border-radius: 0.7rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .toast button:hover { background: #1e6f9f; }
 
         .grid {
             display: grid;
@@ -129,9 +172,7 @@
             gap: 2rem;
             margin-bottom: 2rem;
         }
-        @media (max-width: 750px) {
-            .grid { grid-template-columns: 1fr; gap: 1.75rem; }
-        }
+        @media (max-width: 750px) { .grid { grid-template-columns: 1fr; gap: 1.75rem; } }
         .section {
             background: #ffffffcc;
             border-radius: 1.8rem;
@@ -149,7 +190,6 @@
             gap: 0.5rem;
         }
         .section h2 i { font-style: normal; font-size: 1.5rem; }
-
         .input-group { margin-bottom: 1.3rem; }
         label {
             display: flex;
@@ -181,7 +221,8 @@
             border-color: #2c8ec0;
             box-shadow: 0 0 0 4px #cbe4f0;
         }
-        .input-wrapper input {
+        .input-wrapper input,
+        .input-wrapper select {
             border: none;
             padding: 0.85rem 0.2rem 0.85rem 0.4rem;
             font-size: 1.1rem;
@@ -190,6 +231,11 @@
             outline: none;
             background: transparent;
             color: #102f3f;
+        }
+        .input-wrapper select {
+            cursor: pointer;
+            padding: 0.85rem 0.4rem;
+            font-size: 1rem;
         }
         .input-wrapper input::placeholder { color: #a8c0cd; font-weight: 400; }
         .input-wrapper .currency {
@@ -221,26 +267,15 @@
             cursor: pointer;
             transition: 0.15s;
         }
-        .btn:hover {
-            background: #e3f0f7;
-            border-color: #8bb8d0;
-        }
+        .btn:hover { background: #e3f0f7; border-color: #8bb8d0; }
         .btn-primary {
             background: #1e6f9f;
             border: 1.5px solid #1e6f9f;
             color: white;
         }
-        .btn-primary:hover {
-            background: #135b82;
-            border-color: #135b82;
-        }
+        .btn-primary:hover { background: #135b82; border-color: #135b82; }
 
-        .debt-list {
-            margin-top: 0.5rem;
-            max-height: 380px;
-            overflow-y: auto;
-            padding-right: 0.25rem;
-        }
+        .debt-list { margin-top: 0.5rem; max-height: 400px; overflow-y: auto; padding-right: 0.25rem; }
         .debt-item {
             display: flex;
             align-items: center;
@@ -252,9 +287,21 @@
             border-left: 5px solid #2c8ec0;
             flex-wrap: wrap;
             gap: 0.5rem;
+            position: relative;
+            transition: 0.15s;
         }
         .debt-item.installment { border-left-color: #8e44ad; background: #faf5ff; }
         .debt-item.overdue { border-left-color: #c0392b; background: #fff5f2; }
+        .debt-item.paid {
+            border-left-color: #27ae60;
+            background: #f0fbf5;
+            opacity: 0.85;
+        }
+        .debt-item.paid .debt-name,
+        .debt-item.paid .debt-amount {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
         .debt-item .debt-info { display: flex; flex-direction: column; gap: 0.25rem; flex: 2; min-width: 150px; }
         .debt-item .debt-name {
             font-weight: 600;
@@ -267,7 +314,7 @@
         .debt-item .debt-meta {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.5rem;
             font-size: 0.8rem;
             color: #4e6b7c;
             flex-wrap: wrap;
@@ -290,6 +337,34 @@
             font-weight: 600;
             font-size: 0.7rem;
         }
+        .debt-item .category-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 600;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .cat-bills { background: #3498db; }
+        .cat-loans { background: #e74c3c; }
+        .cat-credit { background: #9b59b6; }
+        .cat-subscription { background: #16a085; }
+        .cat-other { background: #7f8c8d; }
+
+        .paid-badge {
+            background: #27ae60;
+            color: white;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         .debt-item .debt-amount {
             font-weight: 700;
             color: #0e3a4e;
@@ -300,22 +375,33 @@
             white-space: nowrap;
             border: 1px solid #d0e2ec;
         }
-        .debt-actions { display: flex; align-items: center; gap: 0.5rem; }
-        .remove-debt {
+        .debt-actions { display: flex; align-items: center; gap: 0.35rem; }
+        .icon-btn {
             background: transparent;
             border: none;
-            font-size: 1.1rem;
-            color: #96b8ca;
+            font-size: 0.95rem;
+            color: #6a92a8;
             cursor: pointer;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             transition: 0.15s;
+            padding: 0;
         }
-        .remove-debt:hover { background: #ffe5e5; color: #c0392b; }
+        .icon-btn:hover { background: #e3f0f7; color: #1e6f9f; }
+        .icon-btn.remove:hover { background: #ffe5e5; color: #c0392b; }
+        .icon-btn.paid-btn { color: #27ae60; font-size: 1.05rem; }
+        .icon-btn.paid-btn:hover { background: #d4f4e1; }
+        .icon-btn.paid-btn.is-paid { color: #f39c12; }
+        .icon-btn.paid-btn.is-paid:hover { background: #ffeaa7; }
+        .icon-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+        .icon-btn:disabled:hover { background: transparent; color: #6a92a8; }
         .empty-msg {
             color: #8aaabc;
             font-style: italic;
@@ -338,18 +424,11 @@
             margin-bottom: 1.2rem;
         }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .summary-item .label {
-            font-size: 0.9rem;
-            color: #a2c4d8;
-            margin-bottom: 0.25rem;
-        }
-        .summary-item .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
+        .summary-item .label { font-size: 0.9rem; color: #a2c4d8; margin-bottom: 0.25rem; }
+        .summary-item .value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
         .summary-item .value.negative { color: #ffb4a2; }
         .summary-item .value.positive { color: #b9e6b0; }
+        .summary-item .value.paid { color: #7ee6a8; }
         .summary-item .sub { font-size: 0.8rem; color: #85a9bd; margin-top: 0.2rem; }
         .divider { height: 1px; background: #356a83; margin: 1.5rem 0 1.2rem; }
         .cutoff-note {
@@ -376,12 +455,7 @@
             cursor: pointer;
         }
         .reset-btn:hover { background: #2b5f78; color: white; }
-        .footer-note {
-            text-align: right;
-            font-size: 0.7rem;
-            color: #8eaebe;
-            margin-top: 1rem;
-        }
+        .footer-note { text-align: right; font-size: 0.7rem; color: #8eaebe; margin-top: 1rem; }
         .cutoff-summary-line {
             display: flex;
             justify-content: space-between;
@@ -416,6 +490,7 @@
         .schedule-item:last-child { border-bottom: none; }
         .schedule-item .sched-amount { font-weight: 600; color: white; }
         .schedule-item .sched-date { color: #b0d0e0; }
+        .schedule-item.is-paid .sched-amount { color: #7ee6a8; text-decoration: line-through; }
         .text-muted-small { font-size: 0.75rem; color: #85a9bd; }
         .installment-toggle {
             display: flex;
@@ -450,11 +525,7 @@
             border: 1px solid #e8d5f5;
         }
         .installment-fields.visible { display: block; }
-        .installment-info {
-            font-size: 0.8rem;
-            color: #6a4c93;
-            margin-top: 0.5rem;
-        }
+        .installment-info { font-size: 0.8rem; color: #6a4c93; margin-top: 0.5rem; }
         .date-badge {
             font-size: 0.7rem;
             padding: 0.1rem 0.5rem;
@@ -473,6 +544,170 @@
             border-radius: 30px;
             font-weight: 500;
         }
+
+        /* History tab */
+        .history-month {
+            background: #ffffffcc;
+            border-radius: 1.5rem;
+            padding: 1.3rem 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 6px 18px rgba(0, 20, 30, 0.05);
+            border: 1px solid #ffffff;
+        }
+        .history-month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e3f0f7;
+        }
+        .history-month-header h3 {
+            font-size: 1.15rem;
+            color: #0b2c3f;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .history-month-header .badge-current {
+            background: #2c8ec0;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem;
+        }
+        .history-stat {
+            background: #f2f9fe;
+            border-radius: 1rem;
+            padding: 0.7rem 0.9rem;
+        }
+        .history-stat .label {
+            font-size: 0.7rem;
+            color: #4e6b7c;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        .history-stat .val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0e3a4e;
+        }
+        .history-stat .val.paid { color: #27ae60; }
+        .history-stat .val.unpaid { color: #c0392b; }
+        .history-stat .val.balance-pos { color: #27ae60; }
+        .history-stat .val.balance-neg { color: #c0392b; }
+
+        .history-debts {
+            margin-top: 1rem;
+        }
+        .history-debt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.8rem;
+            margin-bottom: 0.35rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .history-debt-row.paid { background: #f0fbf5; }
+        .history-debt-row.unpaid { background: #fff5f2; }
+        .history-debt-name {
+            font-weight: 500;
+            color: #134257;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 2;
+            min-width: 120px;
+        }
+        .history-debt-amt {
+            font-weight: 700;
+            color: #0e3a4e;
+            font-size: 0.9rem;
+        }
+        .history-debt-status {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        .history-debt-status.paid { background: #d4f4e1; color: #1e8449; }
+        .history-debt-status.unpaid { background: #fadbd8; color: #922b21; }
+        .empty-history {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #8aaabc;
+        }
+        .empty-history .emoji { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+        .history-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .history-controls .btn { font-size: 0.8rem; padding: 0.5rem 1rem; }
+
+        /* Edit modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 30, 45, 0.55);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            z-index: 999;
+        }
+        .modal-backdrop.show { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 1.8rem;
+            width: 100%;
+            max-width: 520px;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+        }
+        .modal h3 {
+            font-size: 1.35rem;
+            color: #0b2c3f;
+            margin-bottom: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .modal-actions .btn { flex: 1; padding: 0.85rem; }
+        .modal .installment-toggle { margin-bottom: 1.3rem; }
+        .modal .installment-fields { margin-bottom: 1rem; }
+        .modal .input-group { margin-bottom: 1rem; }
+        .modal-note {
+            font-size: 0.8rem;
+            color: #4e6b7c;
+            background: #eef7fc;
+            border-radius: 1rem;
+            padding: 0.7rem 1rem;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -482,7 +717,7 @@
         <span>☁️ cloud sync</span>
     </h1>
     <div class="subhead">
-        Synced across all your devices. Same sync code = same data.
+        Track, pay, and review your debts — all synced.
     </div>
 
     <!-- SYNC BAR -->
@@ -497,149 +732,263 @@
         </div>
     </div>
 
-    <!-- Main Grid -->
-    <div class="grid">
-        <!-- LEFT: Salary -->
-        <div class="section">
-            <h2><i>💵</i> Salary per cutoff</h2>
-            <div class="input-group">
-                <label>1st cutoff (1–15) <span class="badge">₱ / $</span></label>
-                <div class="input-wrapper">
-                    <input type="text" id="salary1" placeholder="0.00" inputmode="decimal" value="1500.00">
-                    <span class="currency">PHP</span>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>2nd cutoff (16–31) <span class="badge">₱ / $</span></label>
-                <div class="input-wrapper">
-                    <input type="text" id="salary2" placeholder="0.00" inputmode="decimal" value="1500.00">
-                    <span class="currency">PHP</span>
-                </div>
-            </div>
-            <div style="margin-top: 1.8rem;">
-                <div style="background: #e3f0f7; border-radius: 1.2rem; padding: 0.9rem 1.2rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
-                        <span style="color: #1f5068; font-weight: 500;">Total monthly salary</span>
-                        <span style="font-weight: 700; color: #0b2c3f;" id="totalSalaryDisplay">₱3,000.00</span>
-                    </div>
-                </div>
-            </div>
-            <div style="margin-top: 1.2rem; background: #f2f9fe; border-radius: 1.2rem; padding: 0.8rem 1.2rem;">
-                <div class="cutoff-summary-line">
-                    <span>📅 1st cutoff debt due:</span>
-                    <strong id="cutoff1DebtDisplay">₱0.00</strong>
-                </div>
-                <div class="cutoff-summary-line" style="border-top: 1px solid #d0e2ec; padding-top: 0.5rem;">
-                    <span>📅 2nd cutoff debt due:</span>
-                    <strong id="cutoff2DebtDisplay">₱0.00</strong>
-                </div>
-            </div>
-        </div>
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tracker">📊 Tracker</button>
+        <button class="tab-btn" data-tab="history">📜 History</button>
+    </div>
 
-        <!-- RIGHT: Add debt -->
-        <div class="section">
-            <h2><i>📋</i> Add debt</h2>
-            <div class="installment-toggle" id="typeToggle">
-                <button class="active" data-type="onetime">🔹 One-time</button>
-                <button data-type="installment">🔁 Installment</button>
-            </div>
-            <div class="flex-row">
-                <div class="input-group" style="flex:2; min-width: 150px;">
-                    <label>Debt name</label>
-                    <div class="input-wrapper" style="padding-left: 1rem;">
-                        <input type="text" id="debtName" placeholder="e.g. Rent" value="Rent">
-                    </div>
-                </div>
-                <div class="input-group" style="flex:1.2; min-width: 110px;">
-                    <label>Amount / month</label>
+    <!-- TRACKER TAB -->
+    <div class="tab-content active" id="tab-tracker">
+        <div class="grid">
+            <!-- LEFT: Salary -->
+            <div class="section">
+                <h2><i>💵</i> Salary per cutoff</h2>
+                <div class="input-group">
+                    <label>1st cutoff (1–15) <span class="badge">₱ / $</span></label>
                     <div class="input-wrapper">
-                        <input type="text" id="debtAmount" placeholder="0.00" inputmode="decimal" value="800">
-                        <span class="currency">₱</span>
+                        <input type="text" id="salary1" placeholder="0.00" inputmode="decimal" value="1500.00">
+                        <span class="currency">PHP</span>
                     </div>
                 </div>
-            </div>
-            <div class="flex-row" style="margin-bottom: 0.5rem;">
-                <div class="input-group" style="flex:1.5; min-width: 160px;">
-                    <label id="dateLabel">📅 Payment date</label>
+                <div class="input-group">
+                    <label>2nd cutoff (16–31) <span class="badge">₱ / $</span></label>
                     <div class="input-wrapper">
-                        <input type="date" id="debtDate">
+                        <input type="text" id="salary2" placeholder="0.00" inputmode="decimal" value="1500.00">
+                        <span class="currency">PHP</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-end; gap: 0.8rem; flex:1; min-width: 140px; margin-bottom: 1.3rem;">
-                    <button class="btn btn-primary" id="addDebtBtn" style="flex:2; padding: 0.85rem 1.2rem;">+ Add</button>
-                    <button class="btn" id="clearDebtsBtn" style="flex:1; padding: 0.85rem 0.8rem;">Clear</button>
+                <div style="margin-top: 1.8rem;">
+                    <div style="background: #e3f0f7; border-radius: 1.2rem; padding: 0.9rem 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                            <span style="color: #1f5068; font-weight: 500;">Total monthly salary</span>
+                            <span style="font-weight: 700; color: #0b2c3f;" id="totalSalaryDisplay">₱3,000.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.2rem; background: #f2f9fe; border-radius: 1.2rem; padding: 0.8rem 1.2rem;">
+                    <div class="cutoff-summary-line">
+                        <span>📅 1st cutoff debt due:</span>
+                        <strong id="cutoff1DebtDisplay">₱0.00</strong>
+                    </div>
+                    <div class="cutoff-summary-line" style="border-top: 1px solid #d0e2ec; padding-top: 0.5rem;">
+                        <span>📅 2nd cutoff debt due:</span>
+                        <strong id="cutoff2DebtDisplay">₱0.00</strong>
+                    </div>
                 </div>
             </div>
-            <div class="installment-fields" id="installmentFields">
+
+            <!-- RIGHT: Add debt -->
+            <div class="section">
+                <h2><i>📋</i> Add debt</h2>
+                <div class="installment-toggle" id="typeToggle">
+                    <button class="active" data-type="onetime">🔹 One-time</button>
+                    <button data-type="installment">🔁 Installment</button>
+                </div>
                 <div class="flex-row">
-                    <div class="input-group" style="flex:1; min-width: 120px;">
-                        <label>🔢 Months</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="installmentMonths" inputmode="numeric" value="6">
+                    <div class="input-group" style="flex:2; min-width: 150px;">
+                        <label>Debt name</label>
+                        <div class="input-wrapper" style="padding-left: 1rem;">
+                            <input type="text" id="debtName" placeholder="e.g. Rent" value="Rent">
                         </div>
                     </div>
-                    <div class="input-group" style="flex:1; min-width: 120px;">
-                        <label>📅 Start month</label>
+                    <div class="input-group" style="flex:1.2; min-width: 110px;">
+                        <label>Amount / month</label>
                         <div class="input-wrapper">
-                            <input type="month" id="installmentStartMonth">
+                            <input type="text" id="debtAmount" placeholder="0.00" inputmode="decimal" value="800">
+                            <span class="currency">₱</span>
                         </div>
                     </div>
                 </div>
-                <div class="installment-info">ℹ️ Monthly amount is applied each active month.</div>
-            </div>
+                <div class="flex-row" style="margin-bottom: 0.5rem;">
+                    <div class="input-group" style="flex:1; min-width: 130px;">
+                        <label>🏷️ Category</label>
+                        <div class="input-wrapper">
+                            <select id="debtCategory">
+                                <option value="bills">💡 Bills</option>
+                                <option value="loans">🏦 Loans</option>
+                                <option value="credit">💳 Credit Card</option>
+                                <option value="subscription">📺 Subscription</option>
+                                <option value="other">📦 Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group" style="flex:1.3; min-width: 140px;">
+                        <label id="dateLabel">📅 Payment date</label>
+                        <div class="input-wrapper">
+                            <input type="date" id="debtDate">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: flex-end; gap: 0.5rem; flex:1; min-width: 130px; margin-bottom: 1.3rem;">
+                        <button class="btn btn-primary" id="addDebtBtn" style="flex:2; padding: 0.85rem 1rem;">+ Add</button>
+                        <button class="btn" id="clearDebtsBtn" style="flex:1; padding: 0.85rem 0.7rem;">Clear</button>
+                    </div>
+                </div>
+                <div class="installment-fields" id="installmentFields">
+                    <div class="flex-row">
+                        <div class="input-group" style="flex:1; min-width: 120px;">
+                            <label>🔢 Months</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="installmentMonths" inputmode="numeric" value="6">
+                            </div>
+                        </div>
+                        <div class="input-group" style="flex:1; min-width: 120px;">
+                            <label>📅 Start month</label>
+                            <div class="input-wrapper">
+                                <input type="month" id="installmentStartMonth">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="installment-info">ℹ️ Monthly amount is applied each active month.</div>
+                </div>
 
-            <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-top: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span>Debt list</span>
-                <span id="debtCount">0 items</span>
+                <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-top: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                    <span>Debt list (tap ✅ to mark as paid)</span>
+                    <span id="debtCount">0 items</span>
+                </div>
+                <div class="debt-list" id="debtListContainer"></div>
             </div>
-            <div class="debt-list" id="debtListContainer"></div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-card">
+            <div class="summary-title">📊 Monthly breakdown</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">1st cutoff salary</div>
+                    <div class="value" id="summarySalary1">₱1,500.00</div>
+                    <div class="sub" id="summaryCutoff1Debt">Debt due: ₱0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">2nd cutoff salary</div>
+                    <div class="value" id="summarySalary2">₱1,500.00</div>
+                    <div class="sub" id="summaryCutoff2Debt">Debt due: ₱0.00</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="summary-item">
+                    <div class="label">Total active debt</div>
+                    <div class="value negative" id="totalDebtDisplay">₱0.00</div>
+                    <div class="sub" id="totalDebtSub">0 of 0 paid</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Monthly balance</div>
+                    <div class="value" id="monthlyBalanceDisplay">₱3,000.00</div>
+                    <div class="sub">Salary – remaining debts</div>
+                </div>
+            </div>
+            <div class="payment-schedule">
+                <h3>📆 Active payments this month</h3>
+                <div id="paymentScheduleContainer">
+                    <div class="schedule-item text-muted-small">No active debts.</div>
+                </div>
+            </div>
+            <div class="cutoff-note" style="margin-top: 1.5rem;">
+                <div>⚖️ Active debt split (50% per cutoff)</div>
+                <span id="debtPerCutoffDisplay">₱0.00</span>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button class="reset-btn" id="resetAllBtn">Reset all data</button>
+            </div>
+        </div>
+        <div class="footer-note">
+            Data syncs automatically. Deleted debts can be undone for 6 seconds.
         </div>
     </div>
 
-    <!-- SUMMARY -->
-    <div class="summary-card">
-        <div class="summary-title">📊 Monthly breakdown</div>
-        <div class="summary-grid">
-            <div class="summary-item">
-                <div class="label">1st cutoff salary</div>
-                <div class="value" id="summarySalary1">₱1,500.00</div>
-                <div class="sub" id="summaryCutoff1Debt">Debt due: ₱0.00</div>
-            </div>
-            <div class="summary-item">
-                <div class="label">2nd cutoff salary</div>
-                <div class="value" id="summarySalary2">₱1,500.00</div>
-                <div class="sub" id="summaryCutoff2Debt">Debt due: ₱0.00</div>
-            </div>
+    <!-- HISTORY TAB -->
+    <div class="tab-content" id="tab-history">
+        <div class="history-controls">
+            <button class="btn" id="historyRefreshBtn">🔄 Refresh</button>
+            <button class="btn" id="historyExportBtn">📥 Export JSON</button>
         </div>
-        <div class="divider"></div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <div class="summary-item">
-                <div class="label">Total active debt</div>
-                <div class="value negative" id="totalDebtDisplay">₱0.00</div>
-                <div class="sub">Current month</div>
+        <div id="historyContainer">
+            <div class="empty-history">
+                <span class="emoji">📜</span>
+                No payment history yet. Mark debts as paid to build your history.
             </div>
-            <div class="summary-item">
-                <div class="label">Monthly balance</div>
-                <div class="value" id="monthlyBalanceDisplay">₱3,000.00</div>
-                <div class="sub">Salary – debts</div>
-            </div>
-        </div>
-        <div class="payment-schedule">
-            <h3>📆 Active payments this month</h3>
-            <div id="paymentScheduleContainer">
-                <div class="schedule-item text-muted-small">No active debts.</div>
-            </div>
-        </div>
-        <div class="cutoff-note" style="margin-top: 1.5rem;">
-            <div>⚖️ Active debt split (50% per cutoff)</div>
-            <span id="debtPerCutoffDisplay">₱0.00</span>
-        </div>
-        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
-            <button class="reset-btn" id="resetAllBtn">Reset all data</button>
         </div>
     </div>
-    <div class="footer-note">
-        Data syncs automatically when connected. Offline changes are saved locally.
+</div>
+
+<!-- UNDO TOAST -->
+<div class="toast" id="undoToast">
+    <span id="undoMessage">Debt deleted</span>
+    <button id="undoBtn">↩️ Undo</button>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="editModal">
+    <div class="modal">
+        <h3>✏️ Edit debt</h3>
+
+        <div class="installment-toggle" id="editTypeToggle">
+            <button class="active" data-type="onetime">🔹 One-time</button>
+            <button data-type="installment">🔁 Installment</button>
+        </div>
+
+        <div class="input-group">
+            <label>Debt name</label>
+            <div class="input-wrapper" style="padding-left:1rem;">
+                <input type="text" id="editName" placeholder="e.g. Rent">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Amount / month</label>
+            <div class="input-wrapper">
+                <input type="text" id="editAmount" placeholder="0.00" inputmode="decimal">
+                <span class="currency">₱</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>🏷️ Category</label>
+            <div class="input-wrapper">
+                <select id="editCategory">
+                    <option value="bills">💡 Bills</option>
+                    <option value="loans">🏦 Loans</option>
+                    <option value="credit">💳 Credit Card</option>
+                    <option value="subscription">📺 Subscription</option>
+                    <option value="other">📦 Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label id="editDateLabel">📅 Payment date</label>
+            <div class="input-wrapper">
+                <input type="date" id="editDate">
+            </div>
+        </div>
+
+        <div class="installment-fields" id="editInstallmentFields">
+            <div class="flex-row">
+                <div class="input-group" style="flex:1;">
+                    <label>🔢 Months</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="editMonths" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="input-group" style="flex:1;">
+                    <label>📅 Start month</label>
+                    <div class="input-wrapper">
+                        <input type="month" id="editStartMonth">
+                    </div>
+                </div>
+            </div>
+            <div class="installment-info">ℹ️ Changing type will convert this debt accordingly.</div>
+        </div>
+
+        <div class="modal-note" id="editNote">
+            Tip: If you meant to add this as an installment, just switch the toggle above.
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn" id="editCancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="editSaveBtn">Save changes</button>
+        </div>
     </div>
 </div>
 
@@ -650,7 +999,7 @@
         from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // ============================================================
-    // 🔥 STEP 1: PASTE YOUR FIREBASE CONFIG HERE
+    // 🔥 PASTE YOUR FIREBASE CONFIG HERE
     // ============================================================
     const firebaseConfig = {
   apiKey: "AIzaSyA8lTVksqU-A6jLY1OMOlEqjO3mlmlNmno",
@@ -669,18 +1018,37 @@
     // ---- State ----
     let debts = [];
     let nextId = 1;
+    let payments = {};        // { "YYYY-MM": { debtId: { paid: true, paidAt: ISO, amount: number } } }
     let currentType = 'onetime';
     let syncCode = null;
     let unsubscribe = null;
     let isRemoteUpdate = false;
     let saveTimeout = null;
 
-    // ---- DOM helper ----
+    // Edit modal
+    let editingDebtId = null;
+    let editingType = 'onetime';
+
+    // Undo system
+    let lastDeleted = null;
+    let undoTimer = null;
+
+    // Categories
+    const CATEGORIES = {
+        bills:        { emoji: '💡', label: 'Bills',        cls: 'cat-bills' },
+        loans:        { emoji: '🏦', label: 'Loans',        cls: 'cat-loans' },
+        credit:       { emoji: '💳', label: 'Credit Card',  cls: 'cat-credit' },
+        subscription: { emoji: '📺', label: 'Subscription', cls: 'cat-subscription' },
+        other:        { emoji: '📦', label: 'Other',        cls: 'cat-other' }
+    };
+
+    // ---- DOM ----
     const $ = id => document.getElementById(id);
     const salary1Input = $('salary1');
     const salary2Input = $('salary2');
     const debtNameInput = $('debtName');
     const debtAmountInput = $('debtAmount');
+    const debtCategoryInput = $('debtCategory');
     const debtDateInput = $('debtDate');
     const addDebtBtn = $('addDebtBtn');
     const clearDebtsBtn = $('clearDebtsBtn');
@@ -692,6 +1060,7 @@
     const summaryCutoff1Debt = $('summaryCutoff1Debt');
     const summaryCutoff2Debt = $('summaryCutoff2Debt');
     const totalDebtDisplay = $('totalDebtDisplay');
+    const totalDebtSub = $('totalDebtSub');
     const monthlyBalanceDisplay = $('monthlyBalanceDisplay');
     const debtPerCutoffDisplay = $('debtPerCutoffDisplay');
     const resetAllBtn = $('resetAllBtn');
@@ -708,23 +1077,47 @@
     const copyBtn = $('copyBtn');
     const statusDot = $('statusDot');
     const statusText = $('statusText');
+    const historyContainer = $('historyContainer');
+
+    // Undo toast
+    const undoToast = $('undoToast');
+    const undoBtn = $('undoBtn');
+    const undoMessage = $('undoMessage');
+
+    // Edit modal DOM
+    const editModal = $('editModal');
+    const editTypeToggle = $('editTypeToggle');
+    const editName = $('editName');
+    const editAmount = $('editAmount');
+    const editCategory = $('editCategory');
+    const editDate = $('editDate');
+    const editDateLabel = $('editDateLabel');
+    const editInstallmentFields = $('editInstallmentFields');
+    const editMonths = $('editMonths');
+    const editStartMonth = $('editStartMonth');
+    const editCancelBtn = $('editCancelBtn');
+    const editSaveBtn = $('editSaveBtn');
+    const editNote = $('editNote');
 
     // ---- Utility ----
     function formatCurrency(amount) {
         return '₱' + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
     function getSalary1() {
-        let v = parseFloat(salary1Input.value);
+        const v = parseFloat(salary1Input.value);
         return isNaN(v) || v < 0 ? 0 : v;
     }
     function getSalary2() {
-        let v = parseFloat(salary2Input.value);
+        const v = parseFloat(salary2Input.value);
         return isNaN(v) || v < 0 ? 0 : v;
     }
     function getCutoffFromDay(day) { return day <= 15 ? 1 : 2; }
     function getCurrentYearMonth() {
         const n = new Date();
         return { year: n.getFullYear(), month: n.getMonth() };
+    }
+    function getYearMonthKey(year, month) {
+        return `${year}-${pad2(month + 1)}`;
     }
     function isInstallmentActive(debt, year, month) {
         if (!debt.isInstallment) return true;
@@ -739,25 +1132,25 @@
         return String(u).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function getCategoryInfo(key) {
+        return CATEGORIES[key] || CATEGORIES.other;
+    }
+    function isPaid(debtId, year, month) {
+        const key = getYearMonthKey(year, month);
+        return !!(payments[key] && payments[key][debtId] && payments[key][debtId].paid);
+    }
 
-    // ---- Decimal input handling ----
-    function enableDecimalInput(id, allowDecimal = true) {
-        const el = document.getElementById(id);
+    // ---- Decimal input ----
+    function enableDecimalInput(el, allowDecimal = true) {
         if (!el) return;
-
         el.addEventListener('input', function() {
             const regex = allowDecimal ? /[^0-9.]/g : /[^0-9]/g;
             let v = this.value.replace(regex, '');
-
             if (allowDecimal) {
-                // Only one decimal point
                 const parts = v.split('.');
                 if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-
-                // Auto-prepend 0 if starts with "."
                 if (v.startsWith('.')) v = '0' + v;
-
-                // Strip leading zeros (but keep "0." cases)
                 if (v.includes('.')) {
                     let [intPart, decPart] = v.split('.');
                     if (intPart.length > 1 && intPart.startsWith('0')) {
@@ -768,15 +1161,12 @@
                     v = v.replace(/^0+/, '') || '0';
                 }
             } else {
-                // Integers only
                 if (v.length > 1 && v.startsWith('0')) {
                     v = v.replace(/^0+/, '') || '0';
                 }
             }
-
             this.value = v;
         });
-
         el.addEventListener('blur', function() {
             if (allowDecimal) {
                 let v = this.value;
@@ -787,7 +1177,7 @@
         });
     }
 
-    // ---- Active debts ----
+    // ---- Active debts (current month) ----
     function getActiveDebts() {
         const { year, month } = getCurrentYearMonth();
         return debts.filter(d => {
@@ -801,12 +1191,19 @@
             return isInstallmentActive(d, year, month);
         });
     }
-    function getTotalActiveDebt() {
-        return getActiveDebts().reduce((s, d) => s + d.amount, 0);
+    function getUnpaidActiveDebts() {
+        const { year, month } = getCurrentYearMonth();
+        return getActiveDebts().filter(d => !isPaid(d.id, year, month));
+    }
+    function getTotalActiveDebt(onlyUnpaid = true) {
+        const list = onlyUnpaid ? getUnpaidActiveDebts() : getActiveDebts();
+        return list.reduce((s, d) => s + d.amount, 0);
     }
     function calculateCutoffDebts() {
+        const { year, month } = getCurrentYearMonth();
         let c1 = 0, c2 = 0;
         getActiveDebts().forEach(debt => {
+            if (isPaid(debt.id, year, month)) return;
             if (debt.isInstallment) {
                 const dueDay = debt.dueDay || 15;
                 if (getCutoffFromDay(dueDay) === 1) c1 += debt.amount; else c2 += debt.amount;
@@ -845,13 +1242,15 @@
 
             if (snap.exists()) {
                 const data = snap.data();
-                if (data && data.debts) {
+                if (data) {
                     isRemoteUpdate = true;
                     debts = data.debts || [];
+                    payments = data.payments || {};
                     nextId = data.nextId || 1;
                     if (data.salary1 !== undefined) salary1Input.value = data.salary1;
                     if (data.salary2 !== undefined) salary2Input.value = data.salary2;
                     renderAll();
+                    renderHistory();
                     isRemoteUpdate = false;
                 }
             } else {
@@ -861,15 +1260,17 @@
             unsubscribe = onSnapshot(ref, (docSnap) => {
                 if (!docSnap.exists()) return;
                 const data = docSnap.data();
-                if (!data || !data.debts) return;
+                if (!data) return;
                 if (isRemoteUpdate) return;
 
                 isRemoteUpdate = true;
                 debts = data.debts || [];
+                payments = data.payments || {};
                 nextId = data.nextId || 1;
                 if (data.salary1 !== undefined) salary1Input.value = data.salary1;
                 if (data.salary2 !== undefined) salary2Input.value = data.salary2;
                 renderAll();
+                renderHistory();
                 isRemoteUpdate = false;
                 setStatus('online', `Synced · ${syncCode}`);
             }, (error) => {
@@ -894,6 +1295,7 @@
             const ref = doc(db, 'syncData', syncCode);
             await setDoc(ref, {
                 debts: debts,
+                payments: payments,
                 nextId: nextId,
                 salary1: salary1Input.value,
                 salary2: salary2Input.value,
@@ -912,22 +1314,109 @@
         saveTimeout = setTimeout(() => { pushToCloud(); }, 700);
     }
 
-    // ---- Rendering ----
+    // ---- Payment tracking ----
+    function togglePaid(debtId) {
+        const { year, month } = getCurrentYearMonth();
+        const key = getYearMonthKey(year, month);
+        if (!payments[key]) payments[key] = {};
+        const debt = debts.find(d => d.id === debtId);
+        if (!debt) return;
+
+        if (payments[key][debtId] && payments[key][debtId].paid) {
+            delete payments[key][debtId];
+        } else {
+            payments[key][debtId] = {
+                paid: true,
+                paidAt: new Date().toISOString(),
+                amount: debt.amount,
+                name: debt.name,
+                category: debt.category || 'other'
+            };
+        }
+        renderAll();
+        renderHistory();
+    }
+
+    // ---- Undo system ----
+    function showUndoToast(message) {
+        undoMessage.textContent = message;
+        undoToast.classList.add('show');
+        if (undoTimer) clearTimeout(undoTimer);
+        undoTimer = setTimeout(() => {
+            undoToast.classList.remove('show');
+            lastDeleted = null;
+        }, 6000);
+    }
+    function hideUndoToast() {
+        undoToast.classList.remove('show');
+        if (undoTimer) clearTimeout(undoTimer);
+    }
+    function deleteDebt(id) {
+        const debt = debts.find(d => d.id === id);
+        if (!debt) return;
+        lastDeleted = {
+            debt: JSON.parse(JSON.stringify(debt)),
+            index: debts.findIndex(d => d.id === id)
+        };
+        debts = debts.filter(d => d.id !== id);
+        renderAll();
+        renderHistory();
+        showUndoToast(`Deleted "${debt.name}"`);
+    }
+    function undoDelete() {
+        if (!lastDeleted) return;
+        const { debt, index } = lastDeleted;
+        debts.splice(Math.min(index, debts.length), 0, debt);
+        lastDeleted = null;
+        hideUndoToast();
+        renderAll();
+        renderHistory();
+    }
+
+    // ---- Reorder ----
+    function moveDebt(id, direction) {
+        const idx = debts.findIndex(d => d.id === id);
+        if (idx === -1) return;
+        const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= debts.length) return;
+        [debts[idx], debts[newIdx]] = [debts[newIdx], debts[idx]];
+        renderAll();
+    }
+
+    // ---- Rendering: Tracker ----
     function renderDebtList() {
         if (debts.length === 0) {
             debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above.</div>`;
             return;
         }
         const today = new Date(); today.setHours(0,0,0,0);
-        const curYear = today.getFullYear();
-        const curMonth = today.getMonth();
+        const { year: curYear, month: curMonth } = getCurrentYearMonth();
         let html = '';
 
-        debts.forEach(debt => {
+        debts.forEach((debt, idx) => {
             let statusClass = '', badgeClass = '', badgeText = '', dateDisplay = '—', cutoffLabel = '';
+            const cat = getCategoryInfo(debt.category);
+            const catBadge = `<span class="category-badge ${cat.cls}">${cat.emoji} ${cat.label}</span>`;
+
+            const isFirst = idx === 0;
+            const isLast = idx === debts.length - 1;
+            const upDisabled = isFirst ? 'disabled' : '';
+            const downDisabled = isLast ? 'disabled' : '';
+
+            // Determine if this debt is active this month and whether paid
+            let activeThisMonth = false;
+            if (debt.isInstallment) {
+                activeThisMonth = isInstallmentActive(debt, curYear, curMonth);
+            } else if (debt.dueDate) {
+                const dt = new Date(debt.dueDate + 'T00:00:00');
+                if (!isNaN(dt.getTime())) {
+                    activeThisMonth = (dt.getFullYear() === curYear && dt.getMonth() === curMonth);
+                }
+            }
+            const paid = activeThisMonth && isPaid(debt.id, curYear, curMonth);
+            const paidBadge = paid ? `<span class="paid-badge">✓ Paid</span>` : '';
 
             if (debt.isInstallment) {
-                const active = isInstallmentActive(debt, curYear, curMonth);
                 statusClass = 'installment';
                 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                 const sm = debt.startMonth !== undefined ? monthNames[debt.startMonth] : '?';
@@ -936,14 +1425,17 @@
                 dateDisplay = `${sm} ${debt.startYear} – ${em} ${ey}`;
                 const dueDay = debt.dueDay || 15;
                 cutoffLabel = getCutoffFromDay(dueDay) === 1 ? `1st cutoff (day ${dueDay})` : `2nd cutoff (day ${dueDay})`;
-                const progress = active ? '🟢 Active' : '⚪ Done';
+                const progress = activeThisMonth ? '🟢 Active' : '⚪ Done';
+                if (paid) statusClass += ' paid';
 
                 html += `
-                    <div class="debt-item installment" data-id="${debt.id}">
+                    <div class="debt-item ${statusClass}" data-id="${debt.id}">
                         <div class="debt-info">
                             <div class="debt-name">
                                 <span>🔁</span> ${escapeHtml(debt.name)}
+                                ${catBadge}
                                 <span class="installment-badge">${debt.months} months</span>
+                                ${paidBadge}
                                 <span class="date-badge">${progress}</span>
                             </div>
                             <div class="debt-meta">
@@ -953,7 +1445,11 @@
                         </div>
                         <div class="debt-actions">
                             <span class="debt-amount">${formatCurrency(debt.amount)}/mo</span>
-                            <button class="remove-debt" data-id="${debt.id}">✕</button>
+                            ${activeThisMonth ? `<button class="icon-btn paid-btn ${paid?'is-paid':''}" data-id="${debt.id}" title="${paid?'Mark unpaid':'Mark paid'}">${paid?'↺':'✅'}</button>` : ''}
+                            <button class="icon-btn move-up" data-id="${debt.id}" title="Move up" ${upDisabled}>↑</button>
+                            <button class="icon-btn move-down" data-id="${debt.id}" title="Move down" ${downDisabled}>↓</button>
+                            <button class="icon-btn edit-debt" data-id="${debt.id}" title="Edit">✏️</button>
+                            <button class="icon-btn remove remove-debt" data-id="${debt.id}" title="Delete">✕</button>
                         </div>
                     </div>`;
             } else {
@@ -969,12 +1465,15 @@
                         cutoffLabel = getCutoffFromDay(dd.getDate()) === 1 ? '1st cutoff (1–15)' : '2nd cutoff (16–31)';
                     } else { dateDisplay = 'Invalid'; badgeText = '📅 Invalid'; }
                 } else { dateDisplay = 'No date'; badgeText = '📅 No date'; }
+                if (paid) statusClass += ' paid';
 
                 html += `
                     <div class="debt-item ${statusClass}" data-id="${debt.id}">
                         <div class="debt-info">
                             <div class="debt-name">
                                 <span>📌</span> ${escapeHtml(debt.name)}
+                                ${catBadge}
+                                ${paidBadge}
                                 ${badgeText ? `<span class="date-badge ${badgeClass}">${badgeText}</span>` : ''}
                             </div>
                             <div class="debt-meta">
@@ -984,7 +1483,11 @@
                         </div>
                         <div class="debt-actions">
                             <span class="debt-amount">${formatCurrency(debt.amount)}</span>
-                            <button class="remove-debt" data-id="${debt.id}">✕</button>
+                            ${activeThisMonth ? `<button class="icon-btn paid-btn ${paid?'is-paid':''}" data-id="${debt.id}" title="${paid?'Mark unpaid':'Mark paid'}">${paid?'↺':'✅'}</button>` : ''}
+                            <button class="icon-btn move-up" data-id="${debt.id}" title="Move up" ${upDisabled}>↑</button>
+                            <button class="icon-btn move-down" data-id="${debt.id}" title="Move down" ${downDisabled}>↓</button>
+                            <button class="icon-btn edit-debt" data-id="${debt.id}" title="Edit">✏️</button>
+                            <button class="icon-btn remove remove-debt" data-id="${debt.id}" title="Delete">✕</button>
                         </div>
                     </div>`;
             }
@@ -993,6 +1496,7 @@
     }
 
     function renderPaymentSchedule() {
+        const { year, month } = getCurrentYearMonth();
         const active = getActiveDebts();
         let html = '';
         if (active.length === 0) {
@@ -1015,22 +1519,22 @@
                 return false;
             });
 
+            const renderList = (list) => list.map(d => {
+                const cat = getCategoryInfo(d.category);
+                const paid = isPaid(d.id, year, month);
+                let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
+                    (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
+                return `<div class="schedule-item ${paid?'is-paid':''}"><span>${cat.emoji} ${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span>${paid?' ✓':''}</span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
+            }).join('');
+
             if (c1.length > 0) {
                 html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;">1st cutoff (1–15)</div>`;
-                c1.forEach(d => {
-                    let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
-                        (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
-                    html += `<div class="schedule-item"><span>${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span></span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
-                });
+                html += renderList(c1);
             }
             if (c2.length > 0) {
                 if (c1.length > 0) html += `<div style="margin-top:0.6rem;margin-bottom:0.3rem;border-top:1px solid #2b5f78;"></div>`;
                 html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;margin-top:0.4rem;">2nd cutoff (16–31)</div>`;
-                c2.forEach(d => {
-                    let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
-                        (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
-                    html += `<div class="schedule-item"><span>${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span></span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
-                });
+                html += renderList(c2);
             }
         }
         paymentScheduleContainer.innerHTML = html;
@@ -1040,12 +1544,19 @@
         renderDebtList();
         debtCountSpan.textContent = debts.length + (debts.length === 1 ? ' item' : ' items');
 
+        const { year, month } = getCurrentYearMonth();
         const s1 = getSalary1(), s2 = getSalary2();
         const totalSalary = s1 + s2;
-        const activeDebt = getTotalActiveDebt();
-        const balance = totalSalary - activeDebt;
+
+        const activeAll = getActiveDebts();
+        const activeUnpaid = getUnpaidActiveDebts();
+        const totalActiveDebt = activeUnpaid.reduce((s, d) => s + d.amount, 0);
+        const totalActiveDebtAll = activeAll.reduce((s, d) => s + d.amount, 0);
+        const balance = totalSalary - totalActiveDebt;
+
         const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
-        const perCutoff = activeDebt / 2;
+
+        const paidCount = activeAll.filter(d => isPaid(d.id, year, month)).length;
 
         totalSalaryDisplay.textContent = formatCurrency(totalSalary);
         summarySalary1.textContent = formatCurrency(s1);
@@ -1054,28 +1565,110 @@
         summaryCutoff2Debt.textContent = `Debt due: ${formatCurrency(cutoff2Total)}`;
         cutoff1DebtDisplay.textContent = formatCurrency(cutoff1Total);
         cutoff2DebtDisplay.textContent = formatCurrency(cutoff2Total);
-        totalDebtDisplay.textContent = formatCurrency(activeDebt);
+        totalDebtDisplay.textContent = formatCurrency(totalActiveDebt);
+        totalDebtSub.textContent = `${paidCount} of ${activeAll.length} paid`;
         monthlyBalanceDisplay.textContent = formatCurrency(balance);
-        debtPerCutoffDisplay.textContent = formatCurrency(perCutoff);
+        debtPerCutoffDisplay.textContent = formatCurrency(totalActiveDebtAll / 2);
 
         monthlyBalanceDisplay.classList.toggle('negative', balance < 0);
         monthlyBalanceDisplay.classList.toggle('positive', balance >= 0);
+        totalDebtDisplay.classList.toggle('positive', paidCount > 0 && activeUnpaid.length === 0);
+        totalDebtDisplay.classList.toggle('negative', balance < 0 || activeUnpaid.length > 0);
 
         renderPaymentSchedule();
         scheduleSave();
     }
 
-    // ---- Actions ----
+    // ---- Rendering: History ----
+    function renderHistory() {
+        const keys = Object.keys(payments).sort().reverse(); // newest first
+        if (keys.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="empty-history">
+                    <span class="emoji">📜</span>
+                    No payment history yet. Mark debts as paid to build your history.
+                </div>`;
+            return;
+        }
+
+        // Group by year for cleaner display
+        const currentKey = getYearMonthKey(...Object.values(getCurrentYearMonth()));
+
+        let html = '';
+        keys.forEach(key => {
+            const [y, m] = key.split('-').map(Number);
+            const monthLabel = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            const isCurrent = key === currentKey;
+
+            const monthPayments = payments[key];
+            const entries = Object.entries(monthPayments).map(([debtId, info]) => ({
+                debtId: parseInt(debtId, 10),
+                ...info
+            }));
+
+            const totalPaid = entries.reduce((s, e) => s + (e.amount || 0), 0);
+
+            // Find the salary for that month (use current salary as fallback)
+            const salary = (getSalary1() + getSalary2());
+            const monthBalance = salary - totalPaid;
+
+            html += `
+                <div class="history-month">
+                    <div class="history-month-header">
+                        <h3>${monthLabel} ${isCurrent ? '<span class="badge-current">Current</span>' : ''}</h3>
+                        <div style="font-size:0.85rem;color:#4e6b7c;font-weight:500;">
+                            ${entries.length} payment${entries.length !== 1 ? 's' : ''}
+                        </div>
+                    </div>
+                    <div class="history-summary">
+                        <div class="history-stat">
+                            <div class="label">Total Paid</div>
+                            <div class="val paid">${formatCurrency(totalPaid)}</div>
+                        </div>
+                        <div class="history-stat">
+                            <div class="label">Salary (ref.)</div>
+                            <div class="val">${formatCurrency(salary)}</div>
+                        </div>
+                        <div class="history-stat">
+                            <div class="label">Balance</div>
+                            <div class="val ${monthBalance >= 0 ? 'balance-pos' : 'balance-neg'}">${formatCurrency(monthBalance)}</div>
+                        </div>
+                    </div>
+                    <div class="history-debts">
+                        ${entries.map(e => {
+                            const cat = getCategoryInfo(e.category);
+                            return `
+                                <div class="history-debt-row paid">
+                                    <div class="history-debt-name">
+                                        <span>${cat.emoji}</span> ${escapeHtml(e.name)}
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:0.6rem;">
+                                        <span class="history-debt-amt">${formatCurrency(e.amount)}</span>
+                                        <span class="history-debt-status paid">✓ Paid</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        });
+
+        historyContainer.innerHTML = html;
+    }
+
+    // ---- Add debt ----
     function addDebt() {
         const name = debtNameInput.value.trim();
         const amount = parseFloat(debtAmountInput.value);
+        const category = debtCategoryInput.value || 'other';
         const dueDate = debtDateInput.value;
 
         if (!name) { alert('Enter a debt name.'); debtNameInput.focus(); return; }
         if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); debtAmountInput.focus(); return; }
 
         if (currentType === 'onetime') {
-            debts.push({ id: nextId++, name, amount, dueDate: dueDate || null, isInstallment: false });
+            debts.push({ id: nextId++, name, amount, category, dueDate: dueDate || null, isInstallment: false });
         } else {
             const months = parseInt(installmentMonthsInput.value, 10);
             const startVal = installmentStartMonthInput.value;
@@ -1088,7 +1681,7 @@
                 if (!isNaN(dd.getTime())) dueDay = dd.getDate();
             }
             debts.push({
-                id: nextId++, name, amount,
+                id: nextId++, name, amount, category,
                 isInstallment: true,
                 startYear: y, startMonth: m - 1,
                 months, dueDay
@@ -1102,21 +1695,20 @@
         renderAll();
     }
 
-    function removeDebt(id) {
-        debts = debts.filter(d => d.id !== id);
-        renderAll();
-    }
-
     function clearAllDebts() {
         if (debts.length === 0) return;
-        if (confirm('Remove all debts?')) { debts = []; renderAll(); }
+        if (confirm('Remove all debts? This cannot be undone.')) {
+            debts = [];
+            renderAll();
+        }
     }
 
     function resetAll() {
-        if (!confirm('Reset ALL data (salaries + debts)?')) return;
+        if (!confirm('Reset ALL data (salaries, debts, payments)?')) return;
         salary1Input.value = '1500.00';
         salary2Input.value = '1500.00';
         debts = [];
+        payments = {};
         nextId = 1;
         debtNameInput.value = '';
         debtAmountInput.value = '';
@@ -1124,13 +1716,14 @@
         installmentMonthsInput.value = '6';
         setDefaultDates();
         renderAll();
+        renderHistory();
     }
 
     function setDefaultDates() {
         const t = new Date();
         const y = t.getFullYear();
-        const m = String(t.getMonth() + 1).padStart(2, '0');
-        const d = String(t.getDate()).padStart(2, '0');
+        const m = pad2(t.getMonth() + 1);
+        const d = pad2(t.getDate());
         debtDateInput.value = `${y}-${m}-${d}`;
         installmentStartMonthInput.value = `${y}-${m}`;
     }
@@ -1144,33 +1737,168 @@
         dateLabel.textContent = type === 'installment' ? '📅 Due day (from date)' : '📅 Payment date';
     }
 
+    // ---- Edit modal ----
+    function openEditModal(id) {
+        const debt = debts.find(d => d.id === id);
+        if (!debt) return;
+
+        editingDebtId = id;
+        editingType = debt.isInstallment ? 'installment' : 'onetime';
+
+        editName.value = debt.name;
+        editAmount.value = debt.amount;
+        editCategory.value = debt.category || 'other';
+
+        editTypeToggle.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', b.dataset.type === editingType);
+        });
+        editInstallmentFields.classList.toggle('visible', editingType === 'installment');
+        editDateLabel.textContent = editingType === 'installment' ? '📅 Due day (from date)' : '📅 Payment date';
+
+        if (debt.isInstallment) {
+            editMonths.value = debt.months;
+            editStartMonth.value = `${debt.startYear}-${pad2(debt.startMonth + 1)}`;
+            const y = debt.startYear;
+            const m = pad2(debt.startMonth + 1);
+            const d = pad2(debt.dueDay || 15);
+            editDate.value = `${y}-${m}-${d}`;
+        } else {
+            editDate.value = debt.dueDate || '';
+            const t = new Date();
+            editMonths.value = '6';
+            editStartMonth.value = `${t.getFullYear()}-${pad2(t.getMonth() + 1)}`;
+        }
+
+        editNote.textContent = debt.isInstallment
+            ? 'This is currently an installment. Switch to one-time if it should be a single payment.'
+            : 'This is currently a one-time debt. Switch to installment if it spans multiple months.';
+
+        editModal.classList.add('show');
+        setTimeout(() => editName.focus(), 100);
+    }
+
+    function closeEditModal() {
+        editModal.classList.remove('show');
+        editingDebtId = null;
+    }
+
+    function saveEdit() {
+        if (editingDebtId === null) return;
+        const debt = debts.find(d => d.id === editingDebtId);
+        if (!debt) { closeEditModal(); return; }
+
+        const name = editName.value.trim();
+        const amount = parseFloat(editAmount.value);
+        const category = editCategory.value || 'other';
+
+        if (!name) { alert('Enter a debt name.'); editName.focus(); return; }
+        if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); editAmount.focus(); return; }
+
+        debt.name = name;
+        debt.amount = amount;
+        debt.category = category;
+
+        if (editingType === 'installment') {
+            const months = parseInt(editMonths.value, 10);
+            const startVal = editStartMonth.value;
+            if (!startVal) { alert('Select a start month.'); return; }
+            if (isNaN(months) || months < 2) { alert('Minimum 2 months.'); return; }
+
+            const [y, m] = startVal.split('-').map(Number);
+            let dueDay = 15;
+            if (editDate.value) {
+                const dd = new Date(editDate.value + 'T00:00:00');
+                if (!isNaN(dd.getTime())) dueDay = dd.getDate();
+            }
+
+            debt.isInstallment = true;
+            debt.startYear = y;
+            debt.startMonth = m - 1;
+            debt.months = months;
+            debt.dueDay = dueDay;
+            delete debt.dueDate;
+        } else {
+            debt.isInstallment = false;
+            debt.dueDate = editDate.value || null;
+            delete debt.startYear;
+            delete debt.startMonth;
+            delete debt.months;
+            delete debt.dueDay;
+        }
+
+        closeEditModal();
+        renderAll();
+    }
+
+    // ---- Tabs ----
+    function setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const tabId = 'tab-' + btn.dataset.tab;
+                const target = document.getElementById(tabId);
+                if (target) target.classList.add('active');
+                if (btn.dataset.tab === 'history') renderHistory();
+            });
+        });
+    }
+
     // ---- Event listeners ----
     addDebtBtn.addEventListener('click', addDebt);
     clearDebtsBtn.addEventListener('click', clearAllDebts);
     resetAllBtn.addEventListener('click', resetAll);
+
     typeToggle.addEventListener('click', e => {
         const b = e.target.closest('button');
         if (b && b.dataset.type) setType(b.dataset.type);
     });
 
-    debtNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtAmountInput.focus(); }});
-    debtAmountInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtDateInput.focus(); }});
+    debtNameInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') { e.preventDefault(); debtAmountInput.focus(); }
+    });
+    debtAmountInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') { e.preventDefault(); debtDateInput.focus(); }
+    });
 
     debtListContainer.addEventListener('click', e => {
-        const btn = e.target.closest('.remove-debt');
-        if (btn) {
-            const id = parseInt(btn.dataset.id, 10);
-            if (!isNaN(id)) removeDebt(id);
+        const paidBtn = e.target.closest('.paid-btn');
+        if (paidBtn) {
+            const id = parseInt(paidBtn.dataset.id, 10);
+            if (!isNaN(id)) togglePaid(id);
+            return;
+        }
+        const editBtn = e.target.closest('.edit-debt');
+        if (editBtn) {
+            const id = parseInt(editBtn.dataset.id, 10);
+            if (!isNaN(id)) openEditModal(id);
+            return;
+        }
+        const removeBtn = e.target.closest('.remove-debt');
+        if (removeBtn) {
+            const id = parseInt(removeBtn.dataset.id, 10);
+            if (!isNaN(id)) deleteDebt(id);
+            return;
+        }
+        const upBtn = e.target.closest('.move-up');
+        if (upBtn && !upBtn.disabled) {
+            const id = parseInt(upBtn.dataset.id, 10);
+            if (!isNaN(id)) moveDebt(id, 'up');
+            return;
+        }
+        const downBtn = e.target.closest('.move-down');
+        if (downBtn && !downBtn.disabled) {
+            const id = parseInt(downBtn.dataset.id, 10);
+            if (!isNaN(id)) moveDebt(id, 'down');
+            return;
         }
     });
 
     salary1Input.addEventListener('input', renderAll);
     salary2Input.addEventListener('input', renderAll);
 
-    // Sync buttons
-    connectBtn.addEventListener('click', () => {
-        connectToSyncCode(syncCodeInput.value);
-    });
+    connectBtn.addEventListener('click', () => connectToSyncCode(syncCodeInput.value));
     syncCodeInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') connectToSyncCode(syncCodeInput.value);
     });
@@ -1182,17 +1910,58 @@
         });
     });
 
-    // ---- Enable decimal input on relevant fields ----
-    enableDecimalInput('salary1', true);
-    enableDecimalInput('salary2', true);
-    enableDecimalInput('debtAmount', true);
-    enableDecimalInput('installmentMonths', false);
+    undoBtn.addEventListener('click', undoDelete);
+
+    // History controls
+    $('historyRefreshBtn').addEventListener('click', renderHistory);
+    $('historyExportBtn').addEventListener('click', () => {
+        const data = {
+            debts, payments, salary1: salary1Input.value, salary2: salary2Input.value,
+            exportedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `debt-history-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Edit modal
+    editTypeToggle.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (b && b.dataset.type) {
+            editingType = b.dataset.type;
+            editTypeToggle.querySelectorAll('button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === editingType);
+            });
+            editInstallmentFields.classList.toggle('visible', editingType === 'installment');
+            editDateLabel.textContent = editingType === 'installment' ? '📅 Due day (from date)' : '📅 Payment date';
+        }
+    });
+    editCancelBtn.addEventListener('click', closeEditModal);
+    editSaveBtn.addEventListener('click', saveEdit);
+    editModal.addEventListener('click', e => {
+        if (e.target === editModal) closeEditModal();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && editModal.classList.contains('show')) closeEditModal();
+    });
+
+    // Decimal input
+    enableDecimalInput(salary1Input, true);
+    enableDecimalInput(salary2Input, true);
+    enableDecimalInput(debtAmountInput, true);
+    enableDecimalInput(installmentMonthsInput, false);
+    enableDecimalInput(editAmount, true);
+    enableDecimalInput(editMonths, false);
 
     // ---- Init ----
     setDefaultDates();
     setType('onetime');
+    setupTabs();
 
-    // Auto-connect to last sync code
     const lastCode = localStorage.getItem('lastSyncCode');
     if (lastCode) {
         syncCodeInput.value = lastCode;
@@ -1202,6 +1971,7 @@
     }
 
     renderAll();
+    renderHistory();
 </script>
 </body>
 </html>

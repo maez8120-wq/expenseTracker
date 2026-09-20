@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt & Salary Tracker · with Payment Dates</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #e9f0f5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            margin: 0;
+        }
+        .app-card {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.6);
+            padding: 2rem 2rem 2.5rem;
+            transition: all 0.2s;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #0b2c3f;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.35rem;
+            flex-wrap: wrap;
+        }
+        h1 span {
+            background: #1e6f9f;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+            padding: 0.2rem 0.9rem;
+            border-radius: 100px;
+            letter-spacing: 0.3px;
+        }
+        .subhead {
+            color: #4e6b7c;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            border-left: 4px solid #2c8ec0;
+            padding-left: 1rem;
+            font-weight: 400;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+            }
+        }
+        .section {
+            background: #ffffffcc;
+            border-radius: 1.8rem;
+            padding: 1.5rem 1.5rem 1.8rem;
+            box-shadow: 0 6px 18px rgba(0, 20, 30, 0.06);
+            border: 1px solid #ffffff;
+        }
+        .section h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #153e54;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section h2 i {
+            font-style: normal;
+            font-size: 1.5rem;
+        }
+        .input-group {
+            margin-bottom: 1.3rem;
+        }
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: #1f4b61;
+            font-size: 0.95rem;
+            margin-bottom: 0.45rem;
+        }
+        label .badge {
+            background: #d4e6f0;
+            color: #0b3b4e;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 1rem;
+            border: 1.5px solid #d0e2ec;
+            transition: 0.15s;
+            padding: 0 0.2rem 0 1rem;
+        }
+        .input-wrapper:focus-within {
+            border-color: #2c8ec0;
+            box-shadow: 0 0 0 4px #cbe4f0;
+        }
+        .input-wrapper input {
+            border: none;
+            padding: 0.85rem 0.2rem 0.85rem 0.4rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            width: 100%;
+            outline: none;
+            background: transparent;
+            color: #102f3f;
+        }
+        .input-wrapper input::placeholder {
+            color: #a8c0cd;
+            font-weight: 400;
+        }
+        .input-wrapper .currency {
+            color: #2e6b86;
+            font-weight: 600;
+            font-size: 1rem;
+            padding-right: 0.5rem;
+        }
+        .input-wrapper input[type="date"] {
+            padding: 0.8rem 0.2rem 0.8rem 0.4rem;
+            font-size: 1rem;
+            color: #102f3f;
+            font-weight: 500;
+        }
+        .flex-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .flex-row .input-group {
+            flex: 1;
+            min-width: 120px;
+        }
+        .btn {
+            background: white;
+            border: 1.5px solid #bed7e5;
+            border-radius: 2rem;
+            padding: 0.7rem 1.2rem;
+            font-weight: 600;
+            color: #1a5069;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+        .btn:hover {
+            background: #e3f0f7;
+            border-color: #8bb8d0;
+            color: #0d3b4f;
+        }
+        .btn-primary {
+            background: #1e6f9f;
+            border: 1.5px solid #1e6f9f;
+            color: white;
+            box-shadow: 0 8px 14px -6px #1e6f9f80;
+        }
+        .btn-primary:hover {
+            background: #135b82;
+            border-color: #135b82;
+        }
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            border-radius: 2rem;
+        }
+        .debt-list {
+            margin-top: 0.5rem;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+        .debt-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f2f9fe;
+            border-radius: 1.2rem;
+            padding: 0.7rem 1rem 0.7rem 1.2rem;
+            margin-bottom: 0.6rem;
+            border-left: 5px solid #2c8ec0;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            transition: all 0.1s;
+        }
+        .debt-item.overdue {
+            border-left-color: #c0392b;
+            background: #fff5f2;
+        }
+        .debt-item.due-soon {
+            border-left-color: #e67e22;
+            background: #fffaf2;
+        }
+        .debt-item .debt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 2;
+            min-width: 140px;
+        }
+        .debt-item .debt-name {
+            font-weight: 600;
+            color: #134257;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .debt-item .debt-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.8rem;
+            color: #4e6b7c;
+            flex-wrap: wrap;
+        }
+        .debt-item .debt-date {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #e3f0f7;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        .debt-item .debt-date i {
+            font-style: normal;
+        }
+        .debt-item .debt-amount {
+            font-weight: 700;
+            color: #0e3a4e;
+            background: white;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            border: 1px solid #d0e2ec;
+        }
+        .debt-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .remove-debt {
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            color: #96b8ca;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.15s;
+        }
+        .remove-debt:hover {
+            background: #ffe5e5;
+            color: #c0392b;
+        }
+        .empty-msg {
+            color: #8aaabc;
+            font-style: italic;
+            text-align: center;
+            padding: 1.5rem 0.5rem;
+            font-size: 0.95rem;
+        }
+        .summary-card {
+            background: #143b4e;
+            border-radius: 1.8rem;
+            padding: 1.8rem 2rem;
+            color: white;
+            box-shadow: 0 12px 24px -10px #0b2c3f;
+            margin-top: 0.25rem;
+        }
+        .summary-title {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 500;
+            color: #b5d6e8;
+            margin-bottom: 1.2rem;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .summary-item .label {
+            font-size: 0.9rem;
+            color: #a2c4d8;
+            font-weight: 400;
+            margin-bottom: 0.25rem;
+        }
+        .summary-item .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        .summary-item .value.negative {
+            color: #ffb4a2;
+        }
+        .summary-item .value.positive {
+            color: #b9e6b0;
+        }
+        .summary-item .sub {
+            font-size: 0.8rem;
+            color: #85a9bd;
+            margin-top: 0.2rem;
+        }
+        .warning-badge {
+            font-size: 0.75rem;
+            background: #ffb4a2;
+            color: #4a1e12;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+        .divider {
+            height: 1px;
+            background: #356a83;
+            margin: 1.5rem 0 1.2rem;
+        }
+        .cutoff-note {
+            font-size: 0.85rem;
+            color: #b0d0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1d4c63;
+            border-radius: 1rem;
+            padding: 0.75rem 1.2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .cutoff-note span {
+            font-weight: 600;
+            color: white;
+        }
+        .reset-btn {
+            background: none;
+            border: 1px solid #497e96;
+            color: #c8e2f0;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .reset-btn:hover {
+            background: #2b5f78;
+            color: white;
+        }
+        .footer-note {
+            text-align: right;
+            font-size: 0.7rem;
+            color: #8eaebe;
+            margin-top: 1rem;
+        }
+        .date-badge {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            background: #d4e6f0;
+            color: #0b3b4e;
+            font-weight: 500;
+        }
+        .date-badge.overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .date-badge.due-soon {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .cutoff-summary-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+            color: #c8e2f0;
+        }
+        .cutoff-summary-line strong {
+            color: white;
+        }
+        .payment-schedule {
+            background: #1d4c63;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            margin-top: 1.2rem;
+        }
+        .payment-schedule h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #a2c4d8;
+            margin-bottom: 0.6rem;
+            font-weight: 500;
+        }
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 0.25rem 0;
+            color: #d4e6f0;
+            border-bottom: 1px solid #2b5f78;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        .schedule-item .sched-amount {
+            font-weight: 600;
+            color: white;
+        }
+        .schedule-item .sched-date {
+            color: #b0d0e0;
+        }
+        .text-muted-small {
+            font-size: 0.75rem;
+            color: #85a9bd;
+        }
+    </style>
+</head>
+<body>
+<div class="app-card">
+    <h1>
+        💰 Debt & Salary
+        <span>with payment dates</span>
+    </h1>
+    <div class="subhead">
+        Track monthly debts with due dates, see what's due per cutoff.
+    </div>
+
+    <!-- Main Grid: left = salary inputs, right = debts -->
+    <div class="grid">
+        <!-- LEFT: Salary inputs -->
+        <div class="section">
+            <h2>
+                <i>💵</i> Salary per cutoff
+            </h2>
+            <div class="input-group">
+                <label>
+                    1st cutoff (1–15)
+                    <span class="badge">₱ / $</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="number" id="salary1" placeholder="0.00" min="0" step="0.01" value="1500.00">
+                    <span class="currency">PHP</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>
+                    2nd cutoff (16–31)
+                    <span class="badge">₱ / $</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="number" id="salary2" placeholder="0.00" min="0" step="0.01" value="1500.00">
+                    <span class="currency">PHP</span>
+                </div>
+            </div>
+            <div style="margin-top: 1.8rem;">
+                <div style="background: #e3f0f7; border-radius: 1.2rem; padding: 0.9rem 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                        <span style="color: #1f5068; font-weight: 500;">Total monthly salary</span>
+                        <span style="font-weight: 700; color: #0b2c3f;" id="totalSalaryDisplay">₱3,000.00</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Cutoff summary per salary (simple) -->
+            <div style="margin-top: 1.2rem; background: #f2f9fe; border-radius: 1.2rem; padding: 0.8rem 1.2rem;">
+                <div class="cutoff-summary-line">
+                    <span>📅 1st cutoff debt due (1–15):</span>
+                    <strong id="cutoff1DebtDisplay">₱0.00</strong>
+                </div>
+                <div class="cutoff-summary-line" style="border-top: 1px solid #d0e2ec; padding-top: 0.5rem;">
+                    <span>📅 2nd cutoff debt due (16–31):</span>
+                    <strong id="cutoff2DebtDisplay">₱0.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Monthly debts (add/remove) with payment date -->
+        <div class="section">
+            <h2>
+                <i>📋</i> Monthly debts
+            </h2>
+            <div class="flex-row">
+                <div class="input-group" style="flex:2; min-width: 150px;">
+                    <label>Debt name</label>
+                    <div class="input-wrapper" style="padding-left: 1rem;">
+                        <input type="text" id="debtName" placeholder="e.g. Rent, Loan" value="Rent">
+                    </div>
+                </div>
+                <div class="input-group" style="flex:1.2; min-width: 110px;">
+                    <label>Amount</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="debtAmount" placeholder="0.00" min="0" step="0.01" value="800">
+                        <span class="currency">₱</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-row" style="margin-bottom: 1.2rem;">
+                <div class="input-group" style="flex:1.5; min-width: 160px;">
+                    <label>📅 Payment date</label>
+                    <div class="input-wrapper">
+                        <input type="date" id="debtDate" value="">
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 0.8rem; flex:1; min-width: 140px; margin-bottom: 1.3rem;">
+                    <button class="btn btn-primary" id="addDebtBtn" style="flex:2; padding: 0.85rem 1.2rem;">
+                        + Add
+                    </button>
+                    <button class="btn" id="clearDebtsBtn" style="flex:1; padding: 0.85rem 0.8rem;">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span>Debt list (with due dates)</span>
+                <span id="debtCount">0 items</span>
+            </div>
+            <div class="debt-list" id="debtListContainer">
+                <!-- filled dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SUMMARY CARD (per cutoff & monthly) -->
+    <div class="summary-card">
+        <div class="summary-title">📊 Cutoff breakdown & payment schedule</div>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="label">1st cutoff salary</div>
+                <div class="value" id="summarySalary1">₱1,500.00</div>
+                <div class="sub" id="summaryCutoff1Debt">Debt due: ₱0.00</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">2nd cutoff salary</div>
+                <div class="value" id="summarySalary2">₱1,500.00</div>
+                <div class="sub" id="summaryCutoff2Debt">Debt due: ₱0.00</div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="summary-item">
+                <div class="label">Total monthly debt</div>
+                <div class="value negative" id="totalDebtDisplay">₱0.00</div>
+                <div class="sub">All debts combined</div>
+            </div>
+            <div class="summary-item">
+                <div class="label">Monthly surplus / deficit</div>
+                <div class="value" id="monthlyBalanceDisplay">₱3,000.00</div>
+                <div class="sub">Salary – debts</div>
+            </div>
+        </div>
+
+        <!-- Payment schedule breakdown by cutoff -->
+        <div class="payment-schedule">
+            <h3>📆 Upcoming payments by cutoff</h3>
+            <div id="paymentScheduleContainer">
+                <div class="schedule-item text-muted-small">No debts with due dates yet.</div>
+            </div>
+        </div>
+
+        <div class="cutoff-note" style="margin-top: 1.5rem;">
+            <div>⚖️ Total debt split evenly (50% per cutoff)</div>
+            <span id="debtPerCutoffDisplay">₱0.00</span>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+            <button class="reset-btn" id="resetAllBtn">Reset all data</button>
+        </div>
+    </div>
+    <div class="footer-note">
+        Debts are categorized by payment date: days 1–15 (1st cutoff), days 16–31 (2nd cutoff).
+    </div>
+</div>
+<script>
+    (function(){
+        // --- State ---
+        let debts = [];  // each debt: { id, name, amount, dueDate (string YYYY-MM-DD) }
+        let nextId = 1;
+
+        // --- DOM elements ---
+        const salary1Input = document.getElementById('salary1');
+        const salary2Input = document.getElementById('salary2');
+        const debtNameInput = document.getElementById('debtName');
+        const debtAmountInput = document.getElementById('debtAmount');
+        const debtDateInput = document.getElementById('debtDate');
+        const addDebtBtn = document.getElementById('addDebtBtn');
+        const clearDebtsBtn = document.getElementById('clearDebtsBtn');
+        const debtListContainer = document.getElementById('debtListContainer');
+        const debtCountSpan = document.getElementById('debtCount');
+        const totalSalaryDisplay = document.getElementById('totalSalaryDisplay');
+        const summarySalary1 = document.getElementById('summarySalary1');
+        const summarySalary2 = document.getElementById('summarySalary2');
+        const summaryCutoff1Debt = document.getElementById('summaryCutoff1Debt');
+        const summaryCutoff2Debt = document.getElementById('summaryCutoff2Debt');
+        const totalDebtDisplay = document.getElementById('totalDebtDisplay');
+        const monthlyBalanceDisplay = document.getElementById('monthlyBalanceDisplay');
+        const debtPerCutoffDisplay = document.getElementById('debtPerCutoffDisplay');
+        const resetAllBtn = document.getElementById('resetAllBtn');
+        const cutoff1DebtDisplay = document.getElementById('cutoff1DebtDisplay');
+        const cutoff2DebtDisplay = document.getElementById('cutoff2DebtDisplay');
+        const paymentScheduleContainer = document.getElementById('paymentScheduleContainer');
+
+        // --- Utility: format currency ---
+        function formatCurrency(amount) {
+            return '₱' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // --- Get current salary values (number) ---
+        function getSalary1() {
+            let val = parseFloat(salary1Input.value);
+            return isNaN(val) || val < 0 ? 0 : val;
+        }
+        function getSalary2() {
+            let val = parseFloat(salary2Input.value);
+            return isNaN(val) || val < 0 ? 0 : val;
+        }
+
+        // --- Determine which cutoff a date belongs to (1 = 1-15, 2 = 16-31) ---
+        function getCutoffFromDate(dateString) {
+            if (!dateString) return null; // no date set
+            const date = new Date(dateString + 'T00:00:00'); // ensure local time
+            if (isNaN(date.getTime())) return null;
+            const day = date.getDate();
+            return day <= 15 ? 1 : 2;
+        }
+
+        // --- Calculate total debt per cutoff based on due dates ---
+        function calculateCutoffDebts() {
+            let cutoff1Total = 0;
+            let cutoff2Total = 0;
+            debts.forEach(debt => {
+                if (debt.dueDate) {
+                    const cutoff = getCutoffFromDate(debt.dueDate);
+                    if (cutoff === 1) cutoff1Total += debt.amount;
+                    else if (cutoff === 2) cutoff2Total += debt.amount;
+                    // if date invalid, ignore for cutoff totals but still counted in total debt
+                }
+            });
+            return { cutoff1Total, cutoff2Total };
+        }
+
+        // --- Get total debt (all) ---
+        function getTotalDebt() {
+            return debts.reduce((sum, d) => sum + d.amount, 0);
+        }
+
+        // --- Render debt list with due date badges ---
+        function renderDebtList() {
+            if (debts.length === 0) {
+                debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above.</div>`;
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+
+            let html = '';
+            debts.forEach(debt => {
+                // Determine due status for styling & badge
+                let statusClass = '';
+                let badgeClass = '';
+                let badgeText = '';
+
+                if (debt.dueDate) {
+                    const dueDate = new Date(debt.dueDate + 'T00:00:00');
+                    if (!isNaN(dueDate.getTime())) {
+                        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                        if (diffDays < 0) {
+                            statusClass = 'overdue';
+                            badgeClass = 'overdue';
+                            badgeText = '⚠️ Overdue';
+                        } else if (diffDays <= 3) {
+                            statusClass = 'due-soon';
+                            badgeClass = 'due-soon';
+                            badgeText = '⏰ Due soon';
+                        } else {
+                            badgeText = '📅 Due';
+                        }
+                    } else {
+                        badgeText = '📅 Invalid date';
+                    }
+                } else {
+                    badgeText = '📅 No date';
+                }
+
+                // Format date for display
+                let dateDisplay = '—';
+                if (debt.dueDate) {
+                    const d = new Date(debt.dueDate + 'T00:00:00');
+                    if (!isNaN(d.getTime())) {
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        dateDisplay = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+                    } else {
+                        dateDisplay = 'Invalid';
+                    }
+                }
+
+                // Determine cutoff label
+                let cutoffLabel = '';
+                if (debt.dueDate) {
+                    const cutoff = getCutoffFromDate(debt.dueDate);
+                    if (cutoff === 1) cutoffLabel = '1st cutoff (1–15)';
+                    else if (cutoff === 2) cutoffLabel = '2nd cutoff (16–31)';
+                }
+
+                html += `
+                    <div class="debt-item ${statusClass}" data-id="${debt.id}">
+                        <div class="debt-info">
+                            <div class="debt-name">
+                                <span>📌</span> ${escapeHtml(debt.name)}
+                                ${badgeText ? `<span class="date-badge ${badgeClass}">${badgeText}</span>` : ''}
+                            </div>
+                            <div class="debt-meta">
+                                <span class="debt-date"><i>📅</i> ${dateDisplay}</span>
+                                ${cutoffLabel ? `<span class="text-muted-small">${cutoffLabel}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="debt-actions">
+                            <span class="debt-amount">${formatCurrency(debt.amount)}</span>
+                            <button class="remove-debt" data-id="${debt.id}" title="Remove debt">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            debtListContainer.innerHTML = html;
+        }
+
+        // Simple escape for HTML (debt names)
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // --- Render payment schedule (by cutoff) ---
+        function renderPaymentSchedule() {
+            const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
+            const totalDebt = getTotalDebt();
+
+            // Group debts by cutoff
+            const cutoff1Debts = debts.filter(d => d.dueDate && getCutoffFromDate(d.dueDate) === 1);
+            const cutoff2Debts = debts.filter(d => d.dueDate && getCutoffFromDate(d.dueDate) === 2);
+            const noDateDebts = debts.filter(d => !d.dueDate);
+
+            let scheduleHtml = '';
+
+            if (debts.length === 0) {
+                scheduleHtml = `<div class="schedule-item text-muted-small">No debts added yet.</div>`;
+            } else {
+                // Cutoff 1 section
+                if (cutoff1Debts.length > 0) {
+                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500;">1st cutoff (days 1–15)</div>`;
+                    cutoff1Debts.forEach(debt => {
+                        const d = new Date(debt.dueDate + 'T00:00:00');
+                        const dateStr = !isNaN(d.getTime()) ? `${d.getMonth()+1}/${d.getDate()}` : '?';
+                        scheduleHtml += `
+                            <div class="schedule-item">
+                                <span>${escapeHtml(debt.name)} <span class="sched-date">(${dateStr})</span></span>
+                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Cutoff 2 section
+                if (cutoff2Debts.length > 0) {
+                    if (cutoff1Debts.length > 0) scheduleHtml += `<div style="margin-top: 0.6rem; margin-bottom: 0.3rem; border-top: 1px solid #2b5f78;"></div>`;
+                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500; margin-top: 0.4rem;">2nd cutoff (days 16–31)</div>`;
+                    cutoff2Debts.forEach(debt => {
+                        const d = new Date(debt.dueDate + 'T00:00:00');
+                        const dateStr = !isNaN(d.getTime()) ? `${d.getMonth()+1}/${d.getDate()}` : '?';
+                        scheduleHtml += `
+                            <div class="schedule-item">
+                                <span>${escapeHtml(debt.name)} <span class="sched-date">(${dateStr})</span></span>
+                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Debts without date
+                if (noDateDebts.length > 0) {
+                    if (cutoff1Debts.length > 0 || cutoff2Debts.length > 0) scheduleHtml += `<div style="margin-top: 0.6rem; margin-bottom: 0.3rem; border-top: 1px solid #2b5f78;"></div>`;
+                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500; margin-top: 0.4rem;">No date set</div>`;
+                    noDateDebts.forEach(debt => {
+                        scheduleHtml += `
+                            <div class="schedule-item">
+                                <span>${escapeHtml(debt.name)}</span>
+                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            paymentScheduleContainer.innerHTML = scheduleHtml;
+        }
+
+        // --- Main render function ---
+        function renderAll() {
+            // 1. Render debt list
+            renderDebtList();
+
+            // Update debt count
+            debtCountSpan.textContent = debts.length + (debts.length === 1 ? ' item' : ' items');
+
+            // 2. Calculate totals
+            const salary1 = getSalary1();
+            const salary2 = getSalary2();
+            const totalSalary = salary1 + salary2;
+            const totalDebt = getTotalDebt();
+            const monthlyBalance = totalSalary - totalDebt;
+            const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
+            const debtPerCutoff = totalDebt / 2;
+
+            // 3. Update salary displays
+            totalSalaryDisplay.textContent = formatCurrency(totalSalary);
+            summarySalary1.textContent = formatCurrency(salary1);
+            summarySalary2.textContent = formatCurrency(salary2);
+            summaryCutoff1Debt.textContent = `Debt due: ${formatCurrency(cutoff1Total)}`;
+            summaryCutoff2Debt.textContent = `Debt due: ${formatCurrency(cutoff2Total)}`;
+            cutoff1DebtDisplay.textContent = formatCurrency(cutoff1Total);
+            cutoff2DebtDisplay.textContent = formatCurrency(cutoff2Total);
+
+            // 4. Update debt displays
+            totalDebtDisplay.textContent = formatCurrency(totalDebt);
+            monthlyBalanceDisplay.textContent = formatCurrency(monthlyBalance);
+            debtPerCutoffDisplay.textContent = formatCurrency(debtPerCutoff);
+
+            // 5. Color monthly balance
+            if (monthlyBalance < 0) {
+                monthlyBalanceDisplay.classList.add('negative');
+                monthlyBalanceDisplay.classList.remove('positive');
+            } else {
+                monthlyBalanceDisplay.classList.remove('negative');
+                monthlyBalanceDisplay.classList.add('positive');
+            }
+
+            // 6. Render payment schedule
+            renderPaymentSchedule();
+        }
+
+        // --- Add new debt from inputs ---
+        function addDebt() {
+            const name = debtNameInput.value.trim();
+            const amount = parseFloat(debtAmountInput.value);
+            const dueDate = debtDateInput.value; // string YYYY-MM-DD or empty
+
+            // Validation
+            if (!name) {
+                alert('Please enter a debt name.');
+                debtNameInput.focus();
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount greater than 0.');
+                debtAmountInput.focus();
+                return;
+            }
+
+            // Add debt (dueDate can be empty)
+            debts.push({
+                id: nextId++,
+                name: name,
+                amount: amount,
+                dueDate: dueDate || null
+            });
+
+            // Clear input fields
+            debtNameInput.value = '';
+            debtAmountInput.value = '';
+            debtDateInput.value = '';
+            debtNameInput.focus();
+
+            // Re-render everything
+            renderAll();
+        }
+
+        // --- Remove debt by id ---
+        function removeDebt(id) {
+            debts = debts.filter(d => d.id !== id);
+            renderAll();
+        }
+
+        // --- Clear all debts ---
+        function clearAllDebts() {
+            if (debts.length === 0) return;
+            if (confirm('Remove all debts from the list?')) {
+                debts = [];
+                renderAll();
+            }
+        }
+
+        // --- Reset everything to defaults ---
+        function resetAll() {
+            if (confirm('Reset all data (salaries and debts) to default?')) {
+                salary1Input.value = '1500.00';
+                salary2Input.value = '1500.00';
+                debts = [];
+                nextId = 1;
+                debtNameInput.value = '';
+                debtAmountInput.value = '';
+                debtDateInput.value = '';
+                renderAll();
+            }
+        }
+
+        // --- Set default date to today for convenience ---
+        function setDefaultDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            debtDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // --- Attach event listeners ---
+        function init() {
+            // Add debt button
+            addDebtBtn.addEventListener('click', addDebt);
+
+            // Clear debts button
+            clearDebtsBtn.addEventListener('click', clearAllDebts);
+
+            // Reset all button
+            resetAllBtn.addEventListener('click', resetAll);
+
+            // Allow Enter key in debt inputs to add (except date picker)
+            debtNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    debtAmountInput.focus();
+                }
+            });
+            debtAmountInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    debtDateInput.focus();
+                }
+            });
+
+            // Event delegation for remove debt buttons
+            debtListContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.remove-debt');
+                if (removeBtn) {
+                    const id = parseInt(removeBtn.dataset.id, 10);
+                    if (!isNaN(id)) {
+                        removeDebt(id);
+                    }
+                }
+            });
+
+            // Salary inputs change -> re-render
+            salary1Input.addEventListener('input', renderAll);
+            salary2Input.addEventListener('input', renderAll);
+            salary1Input.addEventListener('change', renderAll);
+            salary2Input.addEventListener('change', renderAll);
+
+            // Sanitize salary on change
+            [salary1Input, salary2Input].forEach(inp => {
+                inp.addEventListener('change', function() {
+                    let val = parseFloat(this.value);
+                    if (isNaN(val) || val < 0) this.value = '0.00';
+                    renderAll();
+                });
+            });
+
+            // Set default date to today
+            setDefaultDate();
+
+            // Add a sample debt with due date (Rent on 10th) for demo
+            // This helps illustrate the cutoff feature. Reset will clear it.
+            const today = new Date();
+            const sampleDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-10`;
+            debts.push({ id: nextId++, name: 'Rent', amount: 800, dueDate: sampleDate });
+            // Also add a utility bill due on 20th
+            const sampleDate2 = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-20`;
+            debts.push({ id: nextId++, name: 'Electric Bill', amount: 450, dueDate: sampleDate2 });
+
+            // Initial render
+            renderAll();
+        }
+
+        // Run when DOM ready
+        window.addEventListener('DOMContentLoaded', init);
+    })();
+</script>
+</body>
+</html>

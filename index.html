@@ -52,7 +52,7 @@
             padding-left: 1rem;
         }
 
-        /* --- Sync bar --- */
+        /* Sync bar */
         .sync-bar {
             display: flex;
             align-items: center;
@@ -98,21 +98,10 @@
             cursor: pointer;
             transition: 0.15s;
         }
-        .sync-connect {
-            background: #2c8ec0;
-            color: white;
-        }
-        .sync-connect:hover {
-            background: #1e6f9f;
-        }
-        .sync-copy {
-            background: #1d4c63;
-            color: #b0d0e0;
-        }
-        .sync-copy:hover {
-            background: #2b5f78;
-            color: white;
-        }
+        .sync-connect { background: #2c8ec0; color: white; }
+        .sync-connect:hover { background: #1e6f9f; }
+        .sync-copy { background: #1d4c63; color: #b0d0e0; }
+        .sync-copy:hover { background: #2b5f78; color: white; }
         .sync-status {
             font-size: 0.8rem;
             display: flex;
@@ -126,17 +115,9 @@
             border-radius: 50%;
             background: #888;
         }
-        .dot.online {
-            background: #4ade80;
-            box-shadow: 0 0 6px #4ade80;
-        }
-        .dot.offline {
-            background: #f87171;
-        }
-        .dot.syncing {
-            background: #fbbf24;
-            animation: pulse 1s infinite;
-        }
+        .dot.online { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+        .dot.offline { background: #f87171; }
+        .dot.syncing { background: #fbbf24; animation: pulse 1s infinite; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
@@ -507,7 +488,7 @@
     <!-- SYNC BAR -->
     <div class="sync-bar">
         <label>🔑 Sync code:</label>
-        <input type="text" id="syncCodeInput" placeholder="e.g. JUAN-2024-ABC" maxlength="30">
+        <input type="text" id="syncCodeInput" placeholder="e.g. JUAN-DEBT-2024" maxlength="30">
         <button class="sync-connect" id="connectBtn">Connect</button>
         <button class="sync-copy" id="copyBtn" title="Copy code">📋</button>
         <div class="sync-status" id="syncStatus">
@@ -524,14 +505,14 @@
             <div class="input-group">
                 <label>1st cutoff (1–15) <span class="badge">₱ / $</span></label>
                 <div class="input-wrapper">
-                    <input type="number" id="salary1" placeholder="0.00" min="0" step="any" inputmode="decimal" value="1500.00">
+                    <input type="text" id="salary1" placeholder="0.00" inputmode="decimal" value="1500.00">
                     <span class="currency">PHP</span>
                 </div>
             </div>
             <div class="input-group">
                 <label>2nd cutoff (16–31) <span class="badge">₱ / $</span></label>
                 <div class="input-wrapper">
-                    <input type="number" id="salary2" placeholder="0.00" min="0" step="any" inputmode="decimal" value="1500.00">
+                    <input type="text" id="salary2" placeholder="0.00" inputmode="decimal" value="1500.00">
                     <span class="currency">PHP</span>
                 </div>
             </div>
@@ -572,7 +553,7 @@
                 <div class="input-group" style="flex:1.2; min-width: 110px;">
                     <label>Amount / month</label>
                     <div class="input-wrapper">
-                        <input type="number" id="debtAmount" placeholder="0.00" min="0" step="any" inputmode="decimal" value="800">
+                        <input type="text" id="debtAmount" placeholder="0.00" inputmode="decimal" value="800">
                         <span class="currency">₱</span>
                     </div>
                 </div>
@@ -594,7 +575,7 @@
                     <div class="input-group" style="flex:1; min-width: 120px;">
                         <label>🔢 Months</label>
                         <div class="input-wrapper">
-                            <input type="number" id="installmentMonths" min="2" max="60" step="1" value="6">
+                            <input type="text" id="installmentMonths" inputmode="numeric" value="6">
                         </div>
                     </div>
                     <div class="input-group" style="flex:1; min-width: 120px;">
@@ -672,14 +653,13 @@
     // 🔥 STEP 1: PASTE YOUR FIREBASE CONFIG HERE
     // ============================================================
     const firebaseConfig = {
-    apiKey: "AIzaSyA8lTVksqU-A6jLY1OMOlEqjO3mlmlNmno",
-    authDomain: "expense-tracker-3dad7.firebaseapp.com",
-    projectId: "expense-tracker-3dad7",
-    storageBucket: "expense-tracker-3dad7.firebasestorage.app",
-    messagingSenderId: "213553460204",
-    appId: "1:213553460204:web:a6a688a5519b6974d4c6c9",
-    measurementId: "G-J2RCKDKHPF"
-  };
+        apiKey: "PASTE_YOUR_API_KEY",
+        authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+        projectId: "PASTE_YOUR_PROJECT_ID",
+        storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+        messagingSenderId: "PASTE_YOUR_SENDER_ID",
+        appId: "PASTE_YOUR_APP_ID"
+    };
     // ============================================================
 
     const app = initializeApp(firebaseConfig);
@@ -694,7 +674,7 @@
     let isRemoteUpdate = false;
     let saveTimeout = null;
 
-    // ---- DOM ----
+    // ---- DOM helper ----
     const $ = id => document.getElementById(id);
     const salary1Input = $('salary1');
     const salary2Input = $('salary2');
@@ -755,11 +735,58 @@
     }
     function escapeHtml(u) {
         if (!u) return '';
-        return u.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        return String(u).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
-    // ---- Active debts for current month ----
+    // ---- Decimal input handling ----
+    function enableDecimalInput(id, allowDecimal = true) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', function() {
+            const regex = allowDecimal ? /[^0-9.]/g : /[^0-9]/g;
+            let v = this.value.replace(regex, '');
+
+            if (allowDecimal) {
+                // Only one decimal point
+                const parts = v.split('.');
+                if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+
+                // Auto-prepend 0 if starts with "."
+                if (v.startsWith('.')) v = '0' + v;
+
+                // Strip leading zeros (but keep "0." cases)
+                if (v.includes('.')) {
+                    let [intPart, decPart] = v.split('.');
+                    if (intPart.length > 1 && intPart.startsWith('0')) {
+                        intPart = intPart.replace(/^0+/, '') || '0';
+                        v = intPart + '.' + decPart;
+                    }
+                } else if (v.length > 1 && v.startsWith('0')) {
+                    v = v.replace(/^0+/, '') || '0';
+                }
+            } else {
+                // Integers only
+                if (v.length > 1 && v.startsWith('0')) {
+                    v = v.replace(/^0+/, '') || '0';
+                }
+            }
+
+            this.value = v;
+        });
+
+        el.addEventListener('blur', function() {
+            if (allowDecimal) {
+                let v = this.value;
+                if (v === '' || v === '.') this.value = '';
+                else if (v.endsWith('.')) this.value = v.slice(0, -1);
+                else if (v.startsWith('.')) this.value = '0' + v;
+            }
+        });
+    }
+
+    // ---- Active debts ----
     function getActiveDebts() {
         const { year, month } = getCurrentYearMonth();
         return debts.filter(d => {
@@ -804,21 +831,17 @@
             return;
         }
         const cleanCode = code.trim().toUpperCase().replace(/[^A-Z0-9\-_]/g, '');
-        if (cleanCode !== code.trim()) {
-            syncCodeInput.value = cleanCode;
-        }
 
-        // Disconnect old listener
         if (unsubscribe) { unsubscribe(); unsubscribe = null; }
 
         syncCode = cleanCode;
+        syncCodeInput.value = cleanCode;
         setStatus('syncing', 'Connecting...');
 
         try {
             const ref = doc(db, 'syncData', syncCode);
-
-            // Try initial load
             const snap = await getDoc(ref);
+
             if (snap.exists()) {
                 const data = snap.data();
                 if (data && data.debts) {
@@ -831,17 +854,13 @@
                     isRemoteUpdate = false;
                 }
             } else {
-                // New sync code — push current state
                 await pushToCloud();
             }
 
-            // Listen for real-time updates
             unsubscribe = onSnapshot(ref, (docSnap) => {
                 if (!docSnap.exists()) return;
                 const data = docSnap.data();
                 if (!data || !data.debts) return;
-
-                // Avoid double-render if we triggered it
                 if (isRemoteUpdate) return;
 
                 isRemoteUpdate = true;
@@ -863,7 +882,7 @@
         } catch (e) {
             console.error('Connect failed:', e);
             setStatus('offline', 'Connection failed');
-            alert('Could not connect. Check your Firebase config and internet.');
+            alert('Could not connect: ' + (e.message || e));
         }
     }
 
@@ -886,13 +905,10 @@
         }
     }
 
-    // Debounced save (don't spam Firestore)
     function scheduleSave() {
         if (!syncCode || isRemoteUpdate) return;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            pushToCloud();
-        }, 700);
+        saveTimeout = setTimeout(() => { pushToCloud(); }, 700);
     }
 
     // ---- Rendering ----
@@ -1149,13 +1165,6 @@
 
     salary1Input.addEventListener('input', renderAll);
     salary2Input.addEventListener('input', renderAll);
-    [salary1Input, salary2Input].forEach(inp => {
-        inp.addEventListener('change', function() {
-            let v = parseFloat(this.value);
-            if (isNaN(v) || v < 0) this.value = '0.00';
-            renderAll();
-        });
-    });
 
     // Sync buttons
     connectBtn.addEventListener('click', () => {
@@ -1172,19 +1181,23 @@
         });
     });
 
+    // ---- Enable decimal input on relevant fields ----
+    enableDecimalInput('salary1', true);
+    enableDecimalInput('salary2', true);
+    enableDecimalInput('debtAmount', true);
+    enableDecimalInput('installmentMonths', false);
+
     // ---- Init ----
     setDefaultDates();
     setType('onetime');
 
-    // Try auto-connect to last sync code
+    // Auto-connect to last sync code
     const lastCode = localStorage.getItem('lastSyncCode');
     if (lastCode) {
         syncCodeInput.value = lastCode;
         connectToSyncCode(lastCode);
     } else {
-        // Generate a random sync code suggestion
-        const randomCode = 'USER-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-        syncCodeInput.placeholder = `Try: ${randomCode}`;
+        syncCodeInput.placeholder = 'Try: JUAN-DEBT-2024';
     }
 
     renderAll();

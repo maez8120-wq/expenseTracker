@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debt & Salary Tracker · with Payment Dates</title>
+    <title>Debt & Salary Tracker · Cloud Sync</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,27 +14,21 @@
         body {
             background: linear-gradient(145deg, #f6f9fc 0%, #e9f0f5 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 1.5rem;
             margin: 0;
         }
         .app-card {
-            max-width: 1100px;
-            width: 100%;
+            max-width: 1150px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             padding: 2rem 2rem 2.5rem;
-            transition: all 0.2s;
         }
         h1 {
             font-size: 2rem;
             font-weight: 600;
-            letter-spacing: -0.02em;
             color: #0b2c3f;
             display: flex;
             align-items: center;
@@ -49,32 +43,118 @@
             font-weight: 500;
             padding: 0.2rem 0.9rem;
             border-radius: 100px;
-            letter-spacing: 0.3px;
         }
         .subhead {
             color: #4e6b7c;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             font-size: 1rem;
             border-left: 4px solid #2c8ec0;
             padding-left: 1rem;
+        }
+
+        /* --- Sync bar --- */
+        .sync-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #143b4e;
+            padding: 0.85rem 1.2rem;
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            color: white;
+        }
+        .sync-bar label {
+            font-size: 0.85rem;
+            color: #b0d0e0;
+            font-weight: 500;
+        }
+        .sync-bar input {
+            flex: 1;
+            min-width: 140px;
+            border: none;
+            background: #1d4c63;
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            outline: none;
+            font-family: monospace;
+        }
+        .sync-bar input::placeholder {
+            color: #6a9ab0;
+            letter-spacing: normal;
+            font-family: system-ui, sans-serif;
             font-weight: 400;
         }
+        .sync-bar button {
+            border: none;
+            padding: 0.6rem 1.1rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .sync-connect {
+            background: #2c8ec0;
+            color: white;
+        }
+        .sync-connect:hover {
+            background: #1e6f9f;
+        }
+        .sync-copy {
+            background: #1d4c63;
+            color: #b0d0e0;
+        }
+        .sync-copy:hover {
+            background: #2b5f78;
+            color: white;
+        }
+        .sync-status {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 500;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+        }
+        .dot.online {
+            background: #4ade80;
+            box-shadow: 0 0 6px #4ade80;
+        }
+        .dot.offline {
+            background: #f87171;
+        }
+        .dot.syncing {
+            background: #fbbf24;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: 1fr 1.3fr;
             gap: 2rem;
             margin-bottom: 2rem;
         }
-        @media (max-width: 700px) {
-            .grid {
-                grid-template-columns: 1fr;
-                gap: 1.75rem;
-            }
+        @media (max-width: 750px) {
+            .grid { grid-template-columns: 1fr; gap: 1.75rem; }
         }
         .section {
             background: #ffffffcc;
             border-radius: 1.8rem;
-            padding: 1.5rem 1.5rem 1.8rem;
+            padding: 1.5rem;
             box-shadow: 0 6px 18px rgba(0, 20, 30, 0.06);
             border: 1px solid #ffffff;
         }
@@ -87,13 +167,9 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .section h2 i {
-            font-style: normal;
-            font-size: 1.5rem;
-        }
-        .input-group {
-            margin-bottom: 1.3rem;
-        }
+        .section h2 i { font-style: normal; font-size: 1.5rem; }
+
+        .input-group { margin-bottom: 1.3rem; }
         label {
             display: flex;
             align-items: center;
@@ -110,7 +186,6 @@
             padding: 0.15rem 0.6rem;
             border-radius: 30px;
             font-weight: 500;
-            letter-spacing: 0.2px;
         }
         .input-wrapper {
             display: flex;
@@ -135,31 +210,21 @@
             background: transparent;
             color: #102f3f;
         }
-        .input-wrapper input::placeholder {
-            color: #a8c0cd;
-            font-weight: 400;
-        }
+        .input-wrapper input::placeholder { color: #a8c0cd; font-weight: 400; }
         .input-wrapper .currency {
             color: #2e6b86;
             font-weight: 600;
             font-size: 1rem;
             padding-right: 0.5rem;
         }
-        .input-wrapper input[type="date"] {
+        .input-wrapper input[type="date"],
+        .input-wrapper input[type="month"] {
             padding: 0.8rem 0.2rem 0.8rem 0.4rem;
             font-size: 1rem;
-            color: #102f3f;
-            font-weight: 500;
         }
-        .flex-row {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        .flex-row .input-group {
-            flex: 1;
-            min-width: 120px;
-        }
+        .flex-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .flex-row .input-group { flex: 1; min-width: 120px; }
+
         .btn {
             background: white;
             border: 1.5px solid #bed7e5;
@@ -174,31 +239,24 @@
             gap: 0.4rem;
             cursor: pointer;
             transition: 0.15s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
         .btn:hover {
             background: #e3f0f7;
             border-color: #8bb8d0;
-            color: #0d3b4f;
         }
         .btn-primary {
             background: #1e6f9f;
             border: 1.5px solid #1e6f9f;
             color: white;
-            box-shadow: 0 8px 14px -6px #1e6f9f80;
         }
         .btn-primary:hover {
             background: #135b82;
             border-color: #135b82;
         }
-        .btn-sm {
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-            border-radius: 2rem;
-        }
+
         .debt-list {
             margin-top: 0.5rem;
-            max-height: 280px;
+            max-height: 380px;
             overflow-y: auto;
             padding-right: 0.25rem;
         }
@@ -211,37 +269,24 @@
             padding: 0.7rem 1rem 0.7rem 1.2rem;
             margin-bottom: 0.6rem;
             border-left: 5px solid #2c8ec0;
-            font-size: 0.95rem;
             flex-wrap: wrap;
             gap: 0.5rem;
-            transition: all 0.1s;
         }
-        .debt-item.overdue {
-            border-left-color: #c0392b;
-            background: #fff5f2;
-        }
-        .debt-item.due-soon {
-            border-left-color: #e67e22;
-            background: #fffaf2;
-        }
-        .debt-item .debt-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            flex: 2;
-            min-width: 140px;
-        }
+        .debt-item.installment { border-left-color: #8e44ad; background: #faf5ff; }
+        .debt-item.overdue { border-left-color: #c0392b; background: #fff5f2; }
+        .debt-item .debt-info { display: flex; flex-direction: column; gap: 0.25rem; flex: 2; min-width: 150px; }
         .debt-item .debt-name {
             font-weight: 600;
             color: #134257;
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            flex-wrap: wrap;
         }
         .debt-item .debt-meta {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 0.6rem;
             font-size: 0.8rem;
             color: #4e6b7c;
             flex-wrap: wrap;
@@ -256,8 +301,13 @@
             font-weight: 500;
             font-size: 0.75rem;
         }
-        .debt-item .debt-date i {
-            font-style: normal;
+        .debt-item .installment-badge {
+            background: #e8d5f5;
+            color: #4a1e6e;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
         }
         .debt-item .debt-amount {
             font-weight: 700;
@@ -269,11 +319,7 @@
             white-space: nowrap;
             border: 1px solid #d0e2ec;
         }
-        .debt-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .debt-actions { display: flex; align-items: center; gap: 0.5rem; }
         .remove-debt {
             background: transparent;
             border: none;
@@ -288,23 +334,18 @@
             border-radius: 50%;
             transition: 0.15s;
         }
-        .remove-debt:hover {
-            background: #ffe5e5;
-            color: #c0392b;
-        }
+        .remove-debt:hover { background: #ffe5e5; color: #c0392b; }
         .empty-msg {
             color: #8aaabc;
             font-style: italic;
             text-align: center;
             padding: 1.5rem 0.5rem;
-            font-size: 0.95rem;
         }
         .summary-card {
             background: #143b4e;
             border-radius: 1.8rem;
             padding: 1.8rem 2rem;
             color: white;
-            box-shadow: 0 12px 24px -10px #0b2c3f;
             margin-top: 0.25rem;
         }
         .summary-title {
@@ -315,48 +356,21 @@
             color: #b5d6e8;
             margin-bottom: 1.2rem;
         }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .summary-item .label {
             font-size: 0.9rem;
             color: #a2c4d8;
-            font-weight: 400;
             margin-bottom: 0.25rem;
         }
         .summary-item .value {
             font-size: 1.8rem;
             font-weight: 700;
-            letter-spacing: -0.02em;
             line-height: 1.2;
         }
-        .summary-item .value.negative {
-            color: #ffb4a2;
-        }
-        .summary-item .value.positive {
-            color: #b9e6b0;
-        }
-        .summary-item .sub {
-            font-size: 0.8rem;
-            color: #85a9bd;
-            margin-top: 0.2rem;
-        }
-        .warning-badge {
-            font-size: 0.75rem;
-            background: #ffb4a2;
-            color: #4a1e12;
-            padding: 0.2rem 0.6rem;
-            border-radius: 30px;
-            margin-left: 0.5rem;
-            font-weight: 600;
-        }
-        .divider {
-            height: 1px;
-            background: #356a83;
-            margin: 1.5rem 0 1.2rem;
-        }
+        .summary-item .value.negative { color: #ffb4a2; }
+        .summary-item .value.positive { color: #b9e6b0; }
+        .summary-item .sub { font-size: 0.8rem; color: #85a9bd; margin-top: 0.2rem; }
+        .divider { height: 1px; background: #356a83; margin: 1.5rem 0 1.2rem; }
         .cutoff-note {
             font-size: 0.85rem;
             color: #b0d0e0;
@@ -369,10 +383,7 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-        .cutoff-note span {
-            font-weight: 600;
-            color: white;
-        }
+        .cutoff-note span { font-weight: 600; color: white; }
         .reset-btn {
             background: none;
             border: 1px solid #497e96;
@@ -382,33 +393,13 @@
             font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
-            transition: 0.15s;
         }
-        .reset-btn:hover {
-            background: #2b5f78;
-            color: white;
-        }
+        .reset-btn:hover { background: #2b5f78; color: white; }
         .footer-note {
             text-align: right;
             font-size: 0.7rem;
             color: #8eaebe;
             margin-top: 1rem;
-        }
-        .date-badge {
-            font-size: 0.7rem;
-            padding: 0.1rem 0.5rem;
-            border-radius: 30px;
-            background: #d4e6f0;
-            color: #0b3b4e;
-            font-weight: 500;
-        }
-        .date-badge.overdue {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .date-badge.due-soon {
-            background: #fff3cd;
-            color: #856404;
         }
         .cutoff-summary-line {
             display: flex;
@@ -418,9 +409,7 @@
             font-size: 0.9rem;
             color: #c8e2f0;
         }
-        .cutoff-summary-line strong {
-            color: white;
-        }
+        .cutoff-summary-line strong { color: white; }
         .payment-schedule {
             background: #1d4c63;
             border-radius: 1.2rem;
@@ -443,19 +432,65 @@
             color: #d4e6f0;
             border-bottom: 1px solid #2b5f78;
         }
-        .schedule-item:last-child {
-            border-bottom: none;
+        .schedule-item:last-child { border-bottom: none; }
+        .schedule-item .sched-amount { font-weight: 600; color: white; }
+        .schedule-item .sched-date { color: #b0d0e0; }
+        .text-muted-small { font-size: 0.75rem; color: #85a9bd; }
+        .installment-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            background: #e3f0f7;
+            padding: 0.3rem;
+            border-radius: 2rem;
         }
-        .schedule-item .sched-amount {
+        .installment-toggle button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.5rem;
+            border-radius: 2rem;
             font-weight: 600;
-            color: white;
+            font-size: 0.85rem;
+            color: #1f4b61;
+            cursor: pointer;
         }
-        .schedule-item .sched-date {
-            color: #b0d0e0;
+        .installment-toggle button.active {
+            background: white;
+            color: #1e6f9f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
-        .text-muted-small {
-            font-size: 0.75rem;
-            color: #85a9bd;
+        .installment-fields {
+            display: none;
+            margin-top: 0.5rem;
+            background: #f8f3fd;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            border: 1px solid #e8d5f5;
+        }
+        .installment-fields.visible { display: block; }
+        .installment-info {
+            font-size: 0.8rem;
+            color: #6a4c93;
+            margin-top: 0.5rem;
+        }
+        .date-badge {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            background: #d4e6f0;
+            color: #0b3b4e;
+            font-weight: 500;
+        }
+        .date-badge.overdue { background: #f8d7da; color: #721c24; }
+        .date-badge.due-soon { background: #fff3cd; color: #856404; }
+        .month-badge {
+            background: #e8d5f5;
+            color: #4a1e6e;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -463,34 +498,38 @@
 <div class="app-card">
     <h1>
         💰 Debt & Salary
-        <span>with payment dates</span>
+        <span>☁️ cloud sync</span>
     </h1>
     <div class="subhead">
-        Track monthly debts with due dates, see what's due per cutoff.
+        Synced across all your devices. Same sync code = same data.
     </div>
 
-    <!-- Main Grid: left = salary inputs, right = debts -->
+    <!-- SYNC BAR -->
+    <div class="sync-bar">
+        <label>🔑 Sync code:</label>
+        <input type="text" id="syncCodeInput" placeholder="e.g. JUAN-2024-ABC" maxlength="30">
+        <button class="sync-connect" id="connectBtn">Connect</button>
+        <button class="sync-copy" id="copyBtn" title="Copy code">📋</button>
+        <div class="sync-status" id="syncStatus">
+            <span class="dot offline" id="statusDot"></span>
+            <span id="statusText">Not connected</span>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
     <div class="grid">
-        <!-- LEFT: Salary inputs -->
+        <!-- LEFT: Salary -->
         <div class="section">
-            <h2>
-                <i>💵</i> Salary per cutoff
-            </h2>
+            <h2><i>💵</i> Salary per cutoff</h2>
             <div class="input-group">
-                <label>
-                    1st cutoff (1–15)
-                    <span class="badge">₱ / $</span>
-                </label>
+                <label>1st cutoff (1–15) <span class="badge">₱ / $</span></label>
                 <div class="input-wrapper">
                     <input type="number" id="salary1" placeholder="0.00" min="0" step="0.01" value="1500.00">
                     <span class="currency">PHP</span>
                 </div>
             </div>
             <div class="input-group">
-                <label>
-                    2nd cutoff (16–31)
-                    <span class="badge">₱ / $</span>
-                </label>
+                <label>2nd cutoff (16–31) <span class="badge">₱ / $</span></label>
                 <div class="input-wrapper">
                     <input type="number" id="salary2" placeholder="0.00" min="0" step="0.01" value="1500.00">
                     <span class="currency">PHP</span>
@@ -504,68 +543,81 @@
                     </div>
                 </div>
             </div>
-            <!-- Cutoff summary per salary (simple) -->
             <div style="margin-top: 1.2rem; background: #f2f9fe; border-radius: 1.2rem; padding: 0.8rem 1.2rem;">
                 <div class="cutoff-summary-line">
-                    <span>📅 1st cutoff debt due (1–15):</span>
+                    <span>📅 1st cutoff debt due:</span>
                     <strong id="cutoff1DebtDisplay">₱0.00</strong>
                 </div>
                 <div class="cutoff-summary-line" style="border-top: 1px solid #d0e2ec; padding-top: 0.5rem;">
-                    <span>📅 2nd cutoff debt due (16–31):</span>
+                    <span>📅 2nd cutoff debt due:</span>
                     <strong id="cutoff2DebtDisplay">₱0.00</strong>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT: Monthly debts (add/remove) with payment date -->
+        <!-- RIGHT: Add debt -->
         <div class="section">
-            <h2>
-                <i>📋</i> Monthly debts
-            </h2>
+            <h2><i>📋</i> Add debt</h2>
+            <div class="installment-toggle" id="typeToggle">
+                <button class="active" data-type="onetime">🔹 One-time</button>
+                <button data-type="installment">🔁 Installment</button>
+            </div>
             <div class="flex-row">
                 <div class="input-group" style="flex:2; min-width: 150px;">
                     <label>Debt name</label>
                     <div class="input-wrapper" style="padding-left: 1rem;">
-                        <input type="text" id="debtName" placeholder="e.g. Rent, Loan" value="Rent">
+                        <input type="text" id="debtName" placeholder="e.g. Rent" value="Rent">
                     </div>
                 </div>
                 <div class="input-group" style="flex:1.2; min-width: 110px;">
-                    <label>Amount</label>
+                    <label>Amount / month</label>
                     <div class="input-wrapper">
                         <input type="number" id="debtAmount" placeholder="0.00" min="0" step="0.01" value="800">
                         <span class="currency">₱</span>
                     </div>
                 </div>
             </div>
-            <div class="flex-row" style="margin-bottom: 1.2rem;">
+            <div class="flex-row" style="margin-bottom: 0.5rem;">
                 <div class="input-group" style="flex:1.5; min-width: 160px;">
-                    <label>📅 Payment date</label>
+                    <label id="dateLabel">📅 Payment date</label>
                     <div class="input-wrapper">
-                        <input type="date" id="debtDate" value="">
+                        <input type="date" id="debtDate">
                     </div>
                 </div>
                 <div style="display: flex; align-items: flex-end; gap: 0.8rem; flex:1; min-width: 140px; margin-bottom: 1.3rem;">
-                    <button class="btn btn-primary" id="addDebtBtn" style="flex:2; padding: 0.85rem 1.2rem;">
-                        + Add
-                    </button>
-                    <button class="btn" id="clearDebtsBtn" style="flex:1; padding: 0.85rem 0.8rem;">
-                        Clear
-                    </button>
+                    <button class="btn btn-primary" id="addDebtBtn" style="flex:2; padding: 0.85rem 1.2rem;">+ Add</button>
+                    <button class="btn" id="clearDebtsBtn" style="flex:1; padding: 0.85rem 0.8rem;">Clear</button>
                 </div>
             </div>
-            <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span>Debt list (with due dates)</span>
+            <div class="installment-fields" id="installmentFields">
+                <div class="flex-row">
+                    <div class="input-group" style="flex:1; min-width: 120px;">
+                        <label>🔢 Months</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="installmentMonths" min="2" max="60" step="1" value="6">
+                        </div>
+                    </div>
+                    <div class="input-group" style="flex:1; min-width: 120px;">
+                        <label>📅 Start month</label>
+                        <div class="input-wrapper">
+                            <input type="month" id="installmentStartMonth">
+                        </div>
+                    </div>
+                </div>
+                <div class="installment-info">ℹ️ Monthly amount is applied each active month.</div>
+            </div>
+
+            <div style="font-weight: 500; font-size: 0.9rem; color: #1e5069; margin-top: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span>Debt list</span>
                 <span id="debtCount">0 items</span>
             </div>
-            <div class="debt-list" id="debtListContainer">
-                <!-- filled dynamically -->
-            </div>
+            <div class="debt-list" id="debtListContainer"></div>
         </div>
     </div>
 
-    <!-- SUMMARY CARD (per cutoff & monthly) -->
+    <!-- SUMMARY -->
     <div class="summary-card">
-        <div class="summary-title">📊 Cutoff breakdown & payment schedule</div>
+        <div class="summary-title">📊 Monthly breakdown</div>
         <div class="summary-grid">
             <div class="summary-item">
                 <div class="label">1st cutoff salary</div>
@@ -581,27 +633,24 @@
         <div class="divider"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="summary-item">
-                <div class="label">Total monthly debt</div>
+                <div class="label">Total active debt</div>
                 <div class="value negative" id="totalDebtDisplay">₱0.00</div>
-                <div class="sub">All debts combined</div>
+                <div class="sub">Current month</div>
             </div>
             <div class="summary-item">
-                <div class="label">Monthly surplus / deficit</div>
+                <div class="label">Monthly balance</div>
                 <div class="value" id="monthlyBalanceDisplay">₱3,000.00</div>
                 <div class="sub">Salary – debts</div>
             </div>
         </div>
-
-        <!-- Payment schedule breakdown by cutoff -->
         <div class="payment-schedule">
-            <h3>📆 Upcoming payments by cutoff</h3>
+            <h3>📆 Active payments this month</h3>
             <div id="paymentScheduleContainer">
-                <div class="schedule-item text-muted-small">No debts with due dates yet.</div>
+                <div class="schedule-item text-muted-small">No active debts.</div>
             </div>
         </div>
-
         <div class="cutoff-note" style="margin-top: 1.5rem;">
-            <div>⚖️ Total debt split evenly (50% per cutoff)</div>
+            <div>⚖️ Active debt split (50% per cutoff)</div>
             <span id="debtPerCutoffDisplay">₱0.00</span>
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
@@ -609,142 +658,299 @@
         </div>
     </div>
     <div class="footer-note">
-        Debts are categorized by payment date: days 1–15 (1st cutoff), days 16–31 (2nd cutoff).
+        Data syncs automatically when connected. Offline changes are saved locally.
     </div>
 </div>
-<script>
-    (function(){
-        // --- State ---
-        let debts = [];  // each debt: { id, name, amount, dueDate (string YYYY-MM-DD) }
-        let nextId = 1;
 
-        // --- DOM elements ---
-        const salary1Input = document.getElementById('salary1');
-        const salary2Input = document.getElementById('salary2');
-        const debtNameInput = document.getElementById('debtName');
-        const debtAmountInput = document.getElementById('debtAmount');
-        const debtDateInput = document.getElementById('debtDate');
-        const addDebtBtn = document.getElementById('addDebtBtn');
-        const clearDebtsBtn = document.getElementById('clearDebtsBtn');
-        const debtListContainer = document.getElementById('debtListContainer');
-        const debtCountSpan = document.getElementById('debtCount');
-        const totalSalaryDisplay = document.getElementById('totalSalaryDisplay');
-        const summarySalary1 = document.getElementById('summarySalary1');
-        const summarySalary2 = document.getElementById('summarySalary2');
-        const summaryCutoff1Debt = document.getElementById('summaryCutoff1Debt');
-        const summaryCutoff2Debt = document.getElementById('summaryCutoff2Debt');
-        const totalDebtDisplay = document.getElementById('totalDebtDisplay');
-        const monthlyBalanceDisplay = document.getElementById('monthlyBalanceDisplay');
-        const debtPerCutoffDisplay = document.getElementById('debtPerCutoffDisplay');
-        const resetAllBtn = document.getElementById('resetAllBtn');
-        const cutoff1DebtDisplay = document.getElementById('cutoff1DebtDisplay');
-        const cutoff2DebtDisplay = document.getElementById('cutoff2DebtDisplay');
-        const paymentScheduleContainer = document.getElementById('paymentScheduleContainer');
+<!-- FIREBASE SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, getDoc }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // --- Utility: format currency ---
-        function formatCurrency(amount) {
-            return '₱' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        }
+    // ============================================================
+    // 🔥 STEP 1: PASTE YOUR FIREBASE CONFIG HERE
+    // ============================================================
+    const firebaseConfig = {
+        apiKey: "PASTE_YOUR_API_KEY",
+        authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+        projectId: "PASTE_YOUR_PROJECT_ID",
+        storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+        messagingSenderId: "PASTE_YOUR_SENDER_ID",
+        appId: "PASTE_YOUR_APP_ID"
+    };
+    // ============================================================
 
-        // --- Get current salary values (number) ---
-        function getSalary1() {
-            let val = parseFloat(salary1Input.value);
-            return isNaN(val) || val < 0 ? 0 : val;
-        }
-        function getSalary2() {
-            let val = parseFloat(salary2Input.value);
-            return isNaN(val) || val < 0 ? 0 : val;
-        }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // --- Determine which cutoff a date belongs to (1 = 1-15, 2 = 16-31) ---
-        function getCutoffFromDate(dateString) {
-            if (!dateString) return null; // no date set
-            const date = new Date(dateString + 'T00:00:00'); // ensure local time
-            if (isNaN(date.getTime())) return null;
-            const day = date.getDate();
-            return day <= 15 ? 1 : 2;
-        }
+    // ---- State ----
+    let debts = [];
+    let nextId = 1;
+    let currentType = 'onetime';
+    let syncCode = null;
+    let unsubscribe = null;
+    let isRemoteUpdate = false;
+    let saveTimeout = null;
 
-        // --- Calculate total debt per cutoff based on due dates ---
-        function calculateCutoffDebts() {
-            let cutoff1Total = 0;
-            let cutoff2Total = 0;
-            debts.forEach(debt => {
-                if (debt.dueDate) {
-                    const cutoff = getCutoffFromDate(debt.dueDate);
-                    if (cutoff === 1) cutoff1Total += debt.amount;
-                    else if (cutoff === 2) cutoff2Total += debt.amount;
-                    // if date invalid, ignore for cutoff totals but still counted in total debt
+    // ---- DOM ----
+    const $ = id => document.getElementById(id);
+    const salary1Input = $('salary1');
+    const salary2Input = $('salary2');
+    const debtNameInput = $('debtName');
+    const debtAmountInput = $('debtAmount');
+    const debtDateInput = $('debtDate');
+    const addDebtBtn = $('addDebtBtn');
+    const clearDebtsBtn = $('clearDebtsBtn');
+    const debtListContainer = $('debtListContainer');
+    const debtCountSpan = $('debtCount');
+    const totalSalaryDisplay = $('totalSalaryDisplay');
+    const summarySalary1 = $('summarySalary1');
+    const summarySalary2 = $('summarySalary2');
+    const summaryCutoff1Debt = $('summaryCutoff1Debt');
+    const summaryCutoff2Debt = $('summaryCutoff2Debt');
+    const totalDebtDisplay = $('totalDebtDisplay');
+    const monthlyBalanceDisplay = $('monthlyBalanceDisplay');
+    const debtPerCutoffDisplay = $('debtPerCutoffDisplay');
+    const resetAllBtn = $('resetAllBtn');
+    const cutoff1DebtDisplay = $('cutoff1DebtDisplay');
+    const cutoff2DebtDisplay = $('cutoff2DebtDisplay');
+    const paymentScheduleContainer = $('paymentScheduleContainer');
+    const typeToggle = $('typeToggle');
+    const installmentFields = $('installmentFields');
+    const installmentMonthsInput = $('installmentMonths');
+    const installmentStartMonthInput = $('installmentStartMonth');
+    const dateLabel = $('dateLabel');
+    const syncCodeInput = $('syncCodeInput');
+    const connectBtn = $('connectBtn');
+    const copyBtn = $('copyBtn');
+    const statusDot = $('statusDot');
+    const statusText = $('statusText');
+
+    // ---- Utility ----
+    function formatCurrency(amount) {
+        return '₱' + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    function getSalary1() {
+        let v = parseFloat(salary1Input.value);
+        return isNaN(v) || v < 0 ? 0 : v;
+    }
+    function getSalary2() {
+        let v = parseFloat(salary2Input.value);
+        return isNaN(v) || v < 0 ? 0 : v;
+    }
+    function getCutoffFromDay(day) { return day <= 15 ? 1 : 2; }
+    function getCurrentYearMonth() {
+        const n = new Date();
+        return { year: n.getFullYear(), month: n.getMonth() };
+    }
+    function isInstallmentActive(debt, year, month) {
+        if (!debt.isInstallment) return true;
+        if (debt.startYear === undefined || debt.startMonth === undefined) return false;
+        const start = new Date(debt.startYear, debt.startMonth, 1);
+        const end = new Date(debt.startYear, debt.startMonth + debt.months, 1);
+        const check = new Date(year, month, 1);
+        return check >= start && check < end;
+    }
+    function escapeHtml(u) {
+        if (!u) return '';
+        return u.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // ---- Active debts for current month ----
+    function getActiveDebts() {
+        const { year, month } = getCurrentYearMonth();
+        return debts.filter(d => {
+            if (!d.isInstallment) {
+                if (d.dueDate) {
+                    const dt = new Date(d.dueDate + 'T00:00:00');
+                    return !isNaN(dt.getTime()) && dt.getFullYear() === year && dt.getMonth() === month;
                 }
-            });
-            return { cutoff1Total, cutoff2Total };
+                return false;
+            }
+            return isInstallmentActive(d, year, month);
+        });
+    }
+    function getTotalActiveDebt() {
+        return getActiveDebts().reduce((s, d) => s + d.amount, 0);
+    }
+    function calculateCutoffDebts() {
+        let c1 = 0, c2 = 0;
+        getActiveDebts().forEach(debt => {
+            if (debt.isInstallment) {
+                const dueDay = debt.dueDay || 15;
+                if (getCutoffFromDay(dueDay) === 1) c1 += debt.amount; else c2 += debt.amount;
+            } else if (debt.dueDate) {
+                const dt = new Date(debt.dueDate + 'T00:00:00');
+                if (!isNaN(dt.getTime())) {
+                    if (getCutoffFromDay(dt.getDate()) === 1) c1 += debt.amount; else c2 += debt.amount;
+                }
+            }
+        });
+        return { cutoff1Total: c1, cutoff2Total: c2 };
+    }
+
+    // ---- Firebase Sync ----
+    function setStatus(state, text) {
+        statusDot.className = 'dot ' + state;
+        statusText.textContent = text;
+    }
+
+    async function connectToSyncCode(code) {
+        if (!code || code.trim().length < 3) {
+            alert('Please enter a sync code with at least 3 characters.');
+            return;
+        }
+        const cleanCode = code.trim().toUpperCase().replace(/[^A-Z0-9\-_]/g, '');
+        if (cleanCode !== code.trim()) {
+            syncCodeInput.value = cleanCode;
         }
 
-        // --- Get total debt (all) ---
-        function getTotalDebt() {
-            return debts.reduce((sum, d) => sum + d.amount, 0);
-        }
+        // Disconnect old listener
+        if (unsubscribe) { unsubscribe(); unsubscribe = null; }
 
-        // --- Render debt list with due date badges ---
-        function renderDebtList() {
-            if (debts.length === 0) {
-                debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above.</div>`;
-                return;
+        syncCode = cleanCode;
+        setStatus('syncing', 'Connecting...');
+
+        try {
+            const ref = doc(db, 'syncData', syncCode);
+
+            // Try initial load
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data && data.debts) {
+                    isRemoteUpdate = true;
+                    debts = data.debts || [];
+                    nextId = data.nextId || 1;
+                    if (data.salary1 !== undefined) salary1Input.value = data.salary1;
+                    if (data.salary2 !== undefined) salary2Input.value = data.salary2;
+                    renderAll();
+                    isRemoteUpdate = false;
+                }
+            } else {
+                // New sync code — push current state
+                await pushToCloud();
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
+            // Listen for real-time updates
+            unsubscribe = onSnapshot(ref, (docSnap) => {
+                if (!docSnap.exists()) return;
+                const data = docSnap.data();
+                if (!data || !data.debts) return;
 
-            let html = '';
-            debts.forEach(debt => {
-                // Determine due status for styling & badge
-                let statusClass = '';
-                let badgeClass = '';
-                let badgeText = '';
+                // Avoid double-render if we triggered it
+                if (isRemoteUpdate) return;
 
+                isRemoteUpdate = true;
+                debts = data.debts || [];
+                nextId = data.nextId || 1;
+                if (data.salary1 !== undefined) salary1Input.value = data.salary1;
+                if (data.salary2 !== undefined) salary2Input.value = data.salary2;
+                renderAll();
+                isRemoteUpdate = false;
+                setStatus('online', `Synced · ${syncCode}`);
+            }, (error) => {
+                console.error('Sync error:', error);
+                setStatus('offline', 'Sync error');
+            });
+
+            setStatus('online', `Synced · ${syncCode}`);
+            localStorage.setItem('lastSyncCode', syncCode);
+
+        } catch (e) {
+            console.error('Connect failed:', e);
+            setStatus('offline', 'Connection failed');
+            alert('Could not connect. Check your Firebase config and internet.');
+        }
+    }
+
+    async function pushToCloud() {
+        if (!syncCode) return;
+        try {
+            setStatus('syncing', 'Saving...');
+            const ref = doc(db, 'syncData', syncCode);
+            await setDoc(ref, {
+                debts: debts,
+                nextId: nextId,
+                salary1: salary1Input.value,
+                salary2: salary2Input.value,
+                updatedAt: new Date().toISOString()
+            });
+            setStatus('online', `Synced · ${syncCode}`);
+        } catch (e) {
+            console.error('Push failed:', e);
+            setStatus('offline', 'Save failed');
+        }
+    }
+
+    // Debounced save (don't spam Firestore)
+    function scheduleSave() {
+        if (!syncCode || isRemoteUpdate) return;
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            pushToCloud();
+        }, 700);
+    }
+
+    // ---- Rendering ----
+    function renderDebtList() {
+        if (debts.length === 0) {
+            debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above.</div>`;
+            return;
+        }
+        const today = new Date(); today.setHours(0,0,0,0);
+        const curYear = today.getFullYear();
+        const curMonth = today.getMonth();
+        let html = '';
+
+        debts.forEach(debt => {
+            let statusClass = '', badgeClass = '', badgeText = '', dateDisplay = '—', cutoffLabel = '';
+
+            if (debt.isInstallment) {
+                const active = isInstallmentActive(debt, curYear, curMonth);
+                statusClass = 'installment';
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const sm = debt.startMonth !== undefined ? monthNames[debt.startMonth] : '?';
+                const em = debt.startMonth !== undefined ? monthNames[(debt.startMonth + debt.months - 1) % 12] : '?';
+                const ey = debt.startYear + Math.floor((debt.startMonth + debt.months - 1) / 12);
+                dateDisplay = `${sm} ${debt.startYear} – ${em} ${ey}`;
+                const dueDay = debt.dueDay || 15;
+                cutoffLabel = getCutoffFromDay(dueDay) === 1 ? `1st cutoff (day ${dueDay})` : `2nd cutoff (day ${dueDay})`;
+                const progress = active ? '🟢 Active' : '⚪ Done';
+
+                html += `
+                    <div class="debt-item installment" data-id="${debt.id}">
+                        <div class="debt-info">
+                            <div class="debt-name">
+                                <span>🔁</span> ${escapeHtml(debt.name)}
+                                <span class="installment-badge">${debt.months} months</span>
+                                <span class="date-badge">${progress}</span>
+                            </div>
+                            <div class="debt-meta">
+                                <span class="debt-date">📅 ${dateDisplay}</span>
+                                <span class="month-badge">${cutoffLabel}</span>
+                            </div>
+                        </div>
+                        <div class="debt-actions">
+                            <span class="debt-amount">${formatCurrency(debt.amount)}/mo</span>
+                            <button class="remove-debt" data-id="${debt.id}">✕</button>
+                        </div>
+                    </div>`;
+            } else {
                 if (debt.dueDate) {
-                    const dueDate = new Date(debt.dueDate + 'T00:00:00');
-                    if (!isNaN(dueDate.getTime())) {
-                        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                        if (diffDays < 0) {
-                            statusClass = 'overdue';
-                            badgeClass = 'overdue';
-                            badgeText = '⚠️ Overdue';
-                        } else if (diffDays <= 3) {
-                            statusClass = 'due-soon';
-                            badgeClass = 'due-soon';
-                            badgeText = '⏰ Due soon';
-                        } else {
-                            badgeText = '📅 Due';
-                        }
-                    } else {
-                        badgeText = '📅 Invalid date';
-                    }
-                } else {
-                    badgeText = '📅 No date';
-                }
-
-                // Format date for display
-                let dateDisplay = '—';
-                if (debt.dueDate) {
-                    const d = new Date(debt.dueDate + 'T00:00:00');
-                    if (!isNaN(d.getTime())) {
-                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                        dateDisplay = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-                    } else {
-                        dateDisplay = 'Invalid';
-                    }
-                }
-
-                // Determine cutoff label
-                let cutoffLabel = '';
-                if (debt.dueDate) {
-                    const cutoff = getCutoffFromDate(debt.dueDate);
-                    if (cutoff === 1) cutoffLabel = '1st cutoff (1–15)';
-                    else if (cutoff === 2) cutoffLabel = '2nd cutoff (16–31)';
-                }
+                    const dd = new Date(debt.dueDate + 'T00:00:00');
+                    if (!isNaN(dd.getTime())) {
+                        const diff = Math.ceil((dd - today) / (1000*60*60*24));
+                        if (diff < 0) { statusClass='overdue'; badgeClass='overdue'; badgeText='⚠️ Overdue'; }
+                        else if (diff <= 3) { statusClass='due-soon'; badgeClass='due-soon'; badgeText='⏰ Due soon'; }
+                        else badgeText = '📅 Due';
+                        const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        dateDisplay = `${mNames[dd.getMonth()]} ${dd.getDate()}, ${dd.getFullYear()}`;
+                        cutoffLabel = getCutoffFromDay(dd.getDate()) === 1 ? '1st cutoff (1–15)' : '2nd cutoff (16–31)';
+                    } else { dateDisplay = 'Invalid'; badgeText = '📅 Invalid'; }
+                } else { dateDisplay = 'No date'; badgeText = '📅 No date'; }
 
                 html += `
                     <div class="debt-item ${statusClass}" data-id="${debt.id}">
@@ -754,283 +960,233 @@
                                 ${badgeText ? `<span class="date-badge ${badgeClass}">${badgeText}</span>` : ''}
                             </div>
                             <div class="debt-meta">
-                                <span class="debt-date"><i>📅</i> ${dateDisplay}</span>
+                                <span class="debt-date">📅 ${dateDisplay}</span>
                                 ${cutoffLabel ? `<span class="text-muted-small">${cutoffLabel}</span>` : ''}
                             </div>
                         </div>
                         <div class="debt-actions">
                             <span class="debt-amount">${formatCurrency(debt.amount)}</span>
-                            <button class="remove-debt" data-id="${debt.id}" title="Remove debt">✕</button>
+                            <button class="remove-debt" data-id="${debt.id}">✕</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
+            }
+        });
+        debtListContainer.innerHTML = html;
+    }
+
+    function renderPaymentSchedule() {
+        const active = getActiveDebts();
+        let html = '';
+        if (active.length === 0) {
+            html = `<div class="schedule-item text-muted-small">No active debts this month.</div>`;
+        } else {
+            const c1 = active.filter(d => {
+                if (d.isInstallment) return getCutoffFromDay(d.dueDay || 15) === 1;
+                if (d.dueDate) {
+                    const dt = new Date(d.dueDate + 'T00:00:00');
+                    if (!isNaN(dt.getTime())) return getCutoffFromDay(dt.getDate()) === 1;
+                }
+                return false;
             });
-            debtListContainer.innerHTML = html;
-        }
-
-        // Simple escape for HTML (debt names)
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        // --- Render payment schedule (by cutoff) ---
-        function renderPaymentSchedule() {
-            const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
-            const totalDebt = getTotalDebt();
-
-            // Group debts by cutoff
-            const cutoff1Debts = debts.filter(d => d.dueDate && getCutoffFromDate(d.dueDate) === 1);
-            const cutoff2Debts = debts.filter(d => d.dueDate && getCutoffFromDate(d.dueDate) === 2);
-            const noDateDebts = debts.filter(d => !d.dueDate);
-
-            let scheduleHtml = '';
-
-            if (debts.length === 0) {
-                scheduleHtml = `<div class="schedule-item text-muted-small">No debts added yet.</div>`;
-            } else {
-                // Cutoff 1 section
-                if (cutoff1Debts.length > 0) {
-                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500;">1st cutoff (days 1–15)</div>`;
-                    cutoff1Debts.forEach(debt => {
-                        const d = new Date(debt.dueDate + 'T00:00:00');
-                        const dateStr = !isNaN(d.getTime()) ? `${d.getMonth()+1}/${d.getDate()}` : '?';
-                        scheduleHtml += `
-                            <div class="schedule-item">
-                                <span>${escapeHtml(debt.name)} <span class="sched-date">(${dateStr})</span></span>
-                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
-                            </div>
-                        `;
-                    });
+            const c2 = active.filter(d => {
+                if (d.isInstallment) return getCutoffFromDay(d.dueDay || 15) === 2;
+                if (d.dueDate) {
+                    const dt = new Date(d.dueDate + 'T00:00:00');
+                    if (!isNaN(dt.getTime())) return getCutoffFromDay(dt.getDate()) === 2;
                 }
-
-                // Cutoff 2 section
-                if (cutoff2Debts.length > 0) {
-                    if (cutoff1Debts.length > 0) scheduleHtml += `<div style="margin-top: 0.6rem; margin-bottom: 0.3rem; border-top: 1px solid #2b5f78;"></div>`;
-                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500; margin-top: 0.4rem;">2nd cutoff (days 16–31)</div>`;
-                    cutoff2Debts.forEach(debt => {
-                        const d = new Date(debt.dueDate + 'T00:00:00');
-                        const dateStr = !isNaN(d.getTime()) ? `${d.getMonth()+1}/${d.getDate()}` : '?';
-                        scheduleHtml += `
-                            <div class="schedule-item">
-                                <span>${escapeHtml(debt.name)} <span class="sched-date">(${dateStr})</span></span>
-                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
-                            </div>
-                        `;
-                    });
-                }
-
-                // Debts without date
-                if (noDateDebts.length > 0) {
-                    if (cutoff1Debts.length > 0 || cutoff2Debts.length > 0) scheduleHtml += `<div style="margin-top: 0.6rem; margin-bottom: 0.3rem; border-top: 1px solid #2b5f78;"></div>`;
-                    scheduleHtml += `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #b0d0e0; font-weight: 500; margin-top: 0.4rem;">No date set</div>`;
-                    noDateDebts.forEach(debt => {
-                        scheduleHtml += `
-                            <div class="schedule-item">
-                                <span>${escapeHtml(debt.name)}</span>
-                                <span class="sched-amount">${formatCurrency(debt.amount)}</span>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            paymentScheduleContainer.innerHTML = scheduleHtml;
-        }
-
-        // --- Main render function ---
-        function renderAll() {
-            // 1. Render debt list
-            renderDebtList();
-
-            // Update debt count
-            debtCountSpan.textContent = debts.length + (debts.length === 1 ? ' item' : ' items');
-
-            // 2. Calculate totals
-            const salary1 = getSalary1();
-            const salary2 = getSalary2();
-            const totalSalary = salary1 + salary2;
-            const totalDebt = getTotalDebt();
-            const monthlyBalance = totalSalary - totalDebt;
-            const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
-            const debtPerCutoff = totalDebt / 2;
-
-            // 3. Update salary displays
-            totalSalaryDisplay.textContent = formatCurrency(totalSalary);
-            summarySalary1.textContent = formatCurrency(salary1);
-            summarySalary2.textContent = formatCurrency(salary2);
-            summaryCutoff1Debt.textContent = `Debt due: ${formatCurrency(cutoff1Total)}`;
-            summaryCutoff2Debt.textContent = `Debt due: ${formatCurrency(cutoff2Total)}`;
-            cutoff1DebtDisplay.textContent = formatCurrency(cutoff1Total);
-            cutoff2DebtDisplay.textContent = formatCurrency(cutoff2Total);
-
-            // 4. Update debt displays
-            totalDebtDisplay.textContent = formatCurrency(totalDebt);
-            monthlyBalanceDisplay.textContent = formatCurrency(monthlyBalance);
-            debtPerCutoffDisplay.textContent = formatCurrency(debtPerCutoff);
-
-            // 5. Color monthly balance
-            if (monthlyBalance < 0) {
-                monthlyBalanceDisplay.classList.add('negative');
-                monthlyBalanceDisplay.classList.remove('positive');
-            } else {
-                monthlyBalanceDisplay.classList.remove('negative');
-                monthlyBalanceDisplay.classList.add('positive');
-            }
-
-            // 6. Render payment schedule
-            renderPaymentSchedule();
-        }
-
-        // --- Add new debt from inputs ---
-        function addDebt() {
-            const name = debtNameInput.value.trim();
-            const amount = parseFloat(debtAmountInput.value);
-            const dueDate = debtDateInput.value; // string YYYY-MM-DD or empty
-
-            // Validation
-            if (!name) {
-                alert('Please enter a debt name.');
-                debtNameInput.focus();
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount greater than 0.');
-                debtAmountInput.focus();
-                return;
-            }
-
-            // Add debt (dueDate can be empty)
-            debts.push({
-                id: nextId++,
-                name: name,
-                amount: amount,
-                dueDate: dueDate || null
+                return false;
             });
 
-            // Clear input fields
-            debtNameInput.value = '';
-            debtAmountInput.value = '';
-            debtDateInput.value = '';
-            debtNameInput.focus();
-
-            // Re-render everything
-            renderAll();
-        }
-
-        // --- Remove debt by id ---
-        function removeDebt(id) {
-            debts = debts.filter(d => d.id !== id);
-            renderAll();
-        }
-
-        // --- Clear all debts ---
-        function clearAllDebts() {
-            if (debts.length === 0) return;
-            if (confirm('Remove all debts from the list?')) {
-                debts = [];
-                renderAll();
-            }
-        }
-
-        // --- Reset everything to defaults ---
-        function resetAll() {
-            if (confirm('Reset all data (salaries and debts) to default?')) {
-                salary1Input.value = '1500.00';
-                salary2Input.value = '1500.00';
-                debts = [];
-                nextId = 1;
-                debtNameInput.value = '';
-                debtAmountInput.value = '';
-                debtDateInput.value = '';
-                renderAll();
-            }
-        }
-
-        // --- Set default date to today for convenience ---
-        function setDefaultDate() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            debtDateInput.value = `${yyyy}-${mm}-${dd}`;
-        }
-
-        // --- Attach event listeners ---
-        function init() {
-            // Add debt button
-            addDebtBtn.addEventListener('click', addDebt);
-
-            // Clear debts button
-            clearDebtsBtn.addEventListener('click', clearAllDebts);
-
-            // Reset all button
-            resetAllBtn.addEventListener('click', resetAll);
-
-            // Allow Enter key in debt inputs to add (except date picker)
-            debtNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    debtAmountInput.focus();
-                }
-            });
-            debtAmountInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    debtDateInput.focus();
-                }
-            });
-
-            // Event delegation for remove debt buttons
-            debtListContainer.addEventListener('click', (e) => {
-                const removeBtn = e.target.closest('.remove-debt');
-                if (removeBtn) {
-                    const id = parseInt(removeBtn.dataset.id, 10);
-                    if (!isNaN(id)) {
-                        removeDebt(id);
-                    }
-                }
-            });
-
-            // Salary inputs change -> re-render
-            salary1Input.addEventListener('input', renderAll);
-            salary2Input.addEventListener('input', renderAll);
-            salary1Input.addEventListener('change', renderAll);
-            salary2Input.addEventListener('change', renderAll);
-
-            // Sanitize salary on change
-            [salary1Input, salary2Input].forEach(inp => {
-                inp.addEventListener('change', function() {
-                    let val = parseFloat(this.value);
-                    if (isNaN(val) || val < 0) this.value = '0.00';
-                    renderAll();
+            if (c1.length > 0) {
+                html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;">1st cutoff (1–15)</div>`;
+                c1.forEach(d => {
+                    let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
+                        (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
+                    html += `<div class="schedule-item"><span>${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span></span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
                 });
+            }
+            if (c2.length > 0) {
+                if (c1.length > 0) html += `<div style="margin-top:0.6rem;margin-bottom:0.3rem;border-top:1px solid #2b5f78;"></div>`;
+                html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;margin-top:0.4rem;">2nd cutoff (16–31)</div>`;
+                c2.forEach(d => {
+                    let dateStr = d.isInstallment ? `day ${d.dueDay || 15}` :
+                        (() => { const dt = new Date(d.dueDate + 'T00:00:00'); return `${dt.getMonth()+1}/${dt.getDate()}`; })();
+                    html += `<div class="schedule-item"><span>${escapeHtml(d.name)} <span class="sched-date">(${dateStr})</span></span><span class="sched-amount">${formatCurrency(d.amount)}</span></div>`;
+                });
+            }
+        }
+        paymentScheduleContainer.innerHTML = html;
+    }
+
+    function renderAll() {
+        renderDebtList();
+        debtCountSpan.textContent = debts.length + (debts.length === 1 ? ' item' : ' items');
+
+        const s1 = getSalary1(), s2 = getSalary2();
+        const totalSalary = s1 + s2;
+        const activeDebt = getTotalActiveDebt();
+        const balance = totalSalary - activeDebt;
+        const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
+        const perCutoff = activeDebt / 2;
+
+        totalSalaryDisplay.textContent = formatCurrency(totalSalary);
+        summarySalary1.textContent = formatCurrency(s1);
+        summarySalary2.textContent = formatCurrency(s2);
+        summaryCutoff1Debt.textContent = `Debt due: ${formatCurrency(cutoff1Total)}`;
+        summaryCutoff2Debt.textContent = `Debt due: ${formatCurrency(cutoff2Total)}`;
+        cutoff1DebtDisplay.textContent = formatCurrency(cutoff1Total);
+        cutoff2DebtDisplay.textContent = formatCurrency(cutoff2Total);
+        totalDebtDisplay.textContent = formatCurrency(activeDebt);
+        monthlyBalanceDisplay.textContent = formatCurrency(balance);
+        debtPerCutoffDisplay.textContent = formatCurrency(perCutoff);
+
+        monthlyBalanceDisplay.classList.toggle('negative', balance < 0);
+        monthlyBalanceDisplay.classList.toggle('positive', balance >= 0);
+
+        renderPaymentSchedule();
+        scheduleSave();
+    }
+
+    // ---- Actions ----
+    function addDebt() {
+        const name = debtNameInput.value.trim();
+        const amount = parseFloat(debtAmountInput.value);
+        const dueDate = debtDateInput.value;
+
+        if (!name) { alert('Enter a debt name.'); debtNameInput.focus(); return; }
+        if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); debtAmountInput.focus(); return; }
+
+        if (currentType === 'onetime') {
+            debts.push({ id: nextId++, name, amount, dueDate: dueDate || null, isInstallment: false });
+        } else {
+            const months = parseInt(installmentMonthsInput.value, 10);
+            const startVal = installmentStartMonthInput.value;
+            if (!startVal) { alert('Select a start month.'); return; }
+            if (isNaN(months) || months < 2) { alert('Minimum 2 months.'); return; }
+            const [y, m] = startVal.split('-').map(Number);
+            let dueDay = 15;
+            if (dueDate) {
+                const dd = new Date(dueDate + 'T00:00:00');
+                if (!isNaN(dd.getTime())) dueDay = dd.getDate();
+            }
+            debts.push({
+                id: nextId++, name, amount,
+                isInstallment: true,
+                startYear: y, startMonth: m - 1,
+                months, dueDay
             });
-
-            // Set default date to today
-            setDefaultDate();
-
-            // Add a sample debt with due date (Rent on 10th) for demo
-            // This helps illustrate the cutoff feature. Reset will clear it.
-            const today = new Date();
-            const sampleDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-10`;
-            debts.push({ id: nextId++, name: 'Rent', amount: 800, dueDate: sampleDate });
-            // Also add a utility bill due on 20th
-            const sampleDate2 = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-20`;
-            debts.push({ id: nextId++, name: 'Electric Bill', amount: 450, dueDate: sampleDate2 });
-
-            // Initial render
-            renderAll();
         }
 
-        // Run when DOM ready
-        window.addEventListener('DOMContentLoaded', init);
-    })();
+        debtNameInput.value = '';
+        debtAmountInput.value = '';
+        debtDateInput.value = '';
+        debtNameInput.focus();
+        renderAll();
+    }
+
+    function removeDebt(id) {
+        debts = debts.filter(d => d.id !== id);
+        renderAll();
+    }
+
+    function clearAllDebts() {
+        if (debts.length === 0) return;
+        if (confirm('Remove all debts?')) { debts = []; renderAll(); }
+    }
+
+    function resetAll() {
+        if (!confirm('Reset ALL data (salaries + debts)?')) return;
+        salary1Input.value = '1500.00';
+        salary2Input.value = '1500.00';
+        debts = [];
+        nextId = 1;
+        debtNameInput.value = '';
+        debtAmountInput.value = '';
+        debtDateInput.value = '';
+        installmentMonthsInput.value = '6';
+        setDefaultDates();
+        renderAll();
+    }
+
+    function setDefaultDates() {
+        const t = new Date();
+        const y = t.getFullYear();
+        const m = String(t.getMonth() + 1).padStart(2, '0');
+        const d = String(t.getDate()).padStart(2, '0');
+        debtDateInput.value = `${y}-${m}-${d}`;
+        installmentStartMonthInput.value = `${y}-${m}`;
+    }
+
+    function setType(type) {
+        currentType = type;
+        typeToggle.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', b.dataset.type === type);
+        });
+        installmentFields.classList.toggle('visible', type === 'installment');
+        dateLabel.textContent = type === 'installment' ? '📅 Due day (from date)' : '📅 Payment date';
+    }
+
+    // ---- Event listeners ----
+    addDebtBtn.addEventListener('click', addDebt);
+    clearDebtsBtn.addEventListener('click', clearAllDebts);
+    resetAllBtn.addEventListener('click', resetAll);
+    typeToggle.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (b && b.dataset.type) setType(b.dataset.type);
+    });
+
+    debtNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtAmountInput.focus(); }});
+    debtAmountInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtDateInput.focus(); }});
+
+    debtListContainer.addEventListener('click', e => {
+        const btn = e.target.closest('.remove-debt');
+        if (btn) {
+            const id = parseInt(btn.dataset.id, 10);
+            if (!isNaN(id)) removeDebt(id);
+        }
+    });
+
+    salary1Input.addEventListener('input', renderAll);
+    salary2Input.addEventListener('input', renderAll);
+    [salary1Input, salary2Input].forEach(inp => {
+        inp.addEventListener('change', function() {
+            let v = parseFloat(this.value);
+            if (isNaN(v) || v < 0) this.value = '0.00';
+            renderAll();
+        });
+    });
+
+    // Sync buttons
+    connectBtn.addEventListener('click', () => {
+        connectToSyncCode(syncCodeInput.value);
+    });
+    syncCodeInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') connectToSyncCode(syncCodeInput.value);
+    });
+    copyBtn.addEventListener('click', () => {
+        if (!syncCode) { alert('Connect first.'); return; }
+        navigator.clipboard.writeText(syncCode).then(() => {
+            copyBtn.textContent = '✅';
+            setTimeout(() => copyBtn.textContent = '📋', 1200);
+        });
+    });
+
+    // ---- Init ----
+    setDefaultDates();
+    setType('onetime');
+
+    // Try auto-connect to last sync code
+    const lastCode = localStorage.getItem('lastSyncCode');
+    if (lastCode) {
+        syncCodeInput.value = lastCode;
+        connectToSyncCode(lastCode);
+    } else {
+        // Generate a random sync code suggestion
+        const randomCode = 'USER-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+        syncCodeInput.placeholder = `Try: ${randomCode}`;
+    }
+
+    renderAll();
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debt & Salary Tracker · Cloud Sync</title>
+    <title>Debt & Salary Tracker · Cloud Sync + Backups</title>
     <style>
         * {
             box-sizing: border-box;
@@ -51,6 +51,37 @@
             border-left: 4px solid #2c8ec0;
             padding-left: 1rem;
         }
+
+        /* Backup bar */
+        .backup-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #eef7fc;
+            padding: 0.75rem 1rem;
+            border-radius: 1.2rem;
+            border: 1px solid #cfe4f0;
+        }
+        .backup-bar .label {
+            font-size: 0.8rem;
+            color: #1f4b61;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .backup-bar .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+        .last-backup-info {
+            font-size: 0.75rem;
+            color: #4e6b7c;
+            margin-left: auto;
+            font-weight: 500;
+        }
+        .last-backup-info.warn { color: #c0392b; font-weight: 700; }
+        .last-backup-info.ok { color: #27ae60; }
 
         /* Tabs */
         .tabs {
@@ -134,7 +165,7 @@
         .dot.syncing { background: #fbbf24; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* Undo toast */
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 1.5rem;
@@ -154,6 +185,8 @@
             max-width: 90vw;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: #1e8449; }
+        .toast.error { background: #922b21; }
         .toast button {
             background: #2c8ec0;
             border: none;
@@ -274,6 +307,12 @@
             color: white;
         }
         .btn-primary:hover { background: #135b82; border-color: #135b82; }
+        .btn-danger {
+            background: #c0392b;
+            border: 1.5px solid #c0392b;
+            color: white;
+        }
+        .btn-danger:hover { background: #922b21; border-color: #922b21; }
 
         .debt-list { margin-top: 0.5rem; max-height: 480px; overflow-y: auto; padding-right: 0.25rem; }
         .debt-item {
@@ -409,7 +448,6 @@
             font-size: 0.7rem;
         }
 
-        /* Installment progress bar */
         .inst-progress {
             margin-top: 0.5rem;
             background: white;
@@ -729,10 +767,8 @@
             color: #0e3a4e;
         }
         .history-stat .val.paid { color: #27ae60; }
-        .history-stat .val.unpaid { color: #c0392b; }
         .history-stat .val.balance-pos { color: #27ae60; }
         .history-stat .val.balance-neg { color: #c0392b; }
-
         .history-debts { margin-top: 1rem; }
         .history-debt-row {
             display: flex;
@@ -746,7 +782,6 @@
             gap: 0.4rem;
         }
         .history-debt-row.paid { background: #f0fbf5; }
-        .history-debt-row.unpaid { background: #fff5f2; }
         .history-debt-name {
             font-weight: 500;
             color: #134257;
@@ -768,7 +803,6 @@
             font-weight: 600;
         }
         .history-debt-status.paid { background: #d4f4e1; color: #1e8449; }
-        .history-debt-status.unpaid { background: #fadbd8; color: #922b21; }
         .empty-history {
             text-align: center;
             padding: 3rem 1rem;
@@ -840,13 +874,22 @@
         <span>☁️ cloud sync</span>
     </h1>
     <div class="subhead">
-        Track installments — see how close you are to finishing!
+        Synced + auto-backup. Import JSON anytime to restore.
+    </div>
+
+    <!-- BACKUP BAR -->
+    <div class="backup-bar">
+        <span class="label">💾 Backups:</span>
+        <button class="btn" id="importBtn" title="Restore from JSON file">📥 Import JSON</button>
+        <button class="btn" id="snapshotBtn" title="Download a snapshot now">⬇️ Save Snapshot</button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+        <span class="last-backup-info" id="lastBackupInfo">No backup yet</span>
     </div>
 
     <!-- SYNC BAR -->
     <div class="sync-bar">
         <label>🔑 Sync code:</label>
-        <input type="text" id="syncCodeInput" placeholder="e.g. JUAN-DEBT-2024" maxlength="30">
+        <input type="text" id="syncCodeInput" placeholder="min 12 chars, e.g. JUAN-DEBT-2024-XY" maxlength="40">
         <button class="sync-connect" id="connectBtn">Connect</button>
         <button class="sync-copy" id="copyBtn" title="Copy code">📋</button>
         <div class="sync-status" id="syncStatus">
@@ -1035,10 +1078,10 @@
     </div>
 </div>
 
-<!-- UNDO TOAST -->
-<div class="toast" id="undoToast">
-    <span id="undoMessage">Debt deleted</span>
-    <button id="undoBtn">↩️ Undo</button>
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <span id="toastMessage">Message</span>
+    <button id="toastBtn" style="display:none;">↩️ Undo</button>
 </div>
 
 <!-- EDIT MODAL -->
@@ -1125,14 +1168,13 @@
     // 🔥 PASTE YOUR FIREBASE CONFIG HERE
     // ============================================================
     const firebaseConfig = {
-  apiKey: "AIzaSyA8lTVksqU-A6jLY1OMOlEqjO3mlmlNmno",
-  authDomain: "expense-tracker-3dad7.firebaseapp.com",
-  projectId: "expense-tracker-3dad7",
-  storageBucket: "expense-tracker-3dad7.firebasestorage.app",
-  messagingSenderId: "213553460204",
-  appId: "1:213553460204:web:a6a688a5519b6974d4c6c9",
-  measurementId: "G-J2RCKDKHPF"
-};
+        apiKey: "PASTE_YOUR_API_KEY",
+        authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+        projectId: "PASTE_YOUR_PROJECT_ID",
+        storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+        messagingSenderId: "PASTE_YOUR_SENDER_ID",
+        appId: "PASTE_YOUR_APP_ID"
+    };
     // ============================================================
 
     const app = initializeApp(firebaseConfig);
@@ -1141,22 +1183,19 @@
     // ---- State ----
     let debts = [];
     let nextId = 1;
-    let payments = {};        // { "YYYY-MM": { debtId: { paid: true, paidAt, amount, name, category } } }
+    let payments = {};
     let currentType = 'onetime';
     let syncCode = null;
     let unsubscribe = null;
     let isRemoteUpdate = false;
     let saveTimeout = null;
+    let lastBackupTime = null;
 
-    // Edit modal
     let editingDebtId = null;
     let editingType = 'onetime';
-
-    // Undo
     let lastDeleted = null;
     let undoTimer = null;
 
-    // Categories
     const CATEGORIES = {
         bills:        { emoji: '💡', label: 'Bills',        cls: 'cat-bills' },
         loans:        { emoji: '🏦', label: 'Loans',        cls: 'cat-loans' },
@@ -1201,12 +1240,15 @@
     const statusDot = $('statusDot');
     const statusText = $('statusText');
     const historyContainer = $('historyContainer');
+    const importBtn = $('importBtn');
+    const importFile = $('importFile');
+    const snapshotBtn = $('snapshotBtn');
+    const lastBackupInfo = $('lastBackupInfo');
 
-    const undoToast = $('undoToast');
-    const undoBtn = $('undoBtn');
-    const undoMessage = $('undoMessage');
+    const toast = $('toast');
+    const toastMessage = $('toastMessage');
+    const toastBtn = $('toastBtn');
 
-    // Edit modal DOM
     const editModal = $('editModal');
     const editTypeToggle = $('editTypeToggle');
     const editName = $('editName');
@@ -1263,7 +1305,7 @@
         return !!(payments[key] && payments[key][debtId] && payments[key][debtId].paid);
     }
 
-    // ---- Installment progress calculation ----
+    // ---- Installment progress ----
     function getInstallmentProgress(debt, year, month) {
         if (!debt.isInstallment) return null;
         const start = new Date(debt.startYear, debt.startMonth, 1);
@@ -1271,54 +1313,26 @@
         const check = new Date(year, month, 1);
 
         if (check < start) {
-            return {
-                status: 'upcoming',
-                currentMonth: 0,
-                totalMonths: debt.months,
-                monthsLeft: debt.months,
-                monthsPaid: 0,
-                percent: 0
-            };
+            return { status: 'upcoming', currentMonth: 0, totalMonths: debt.months, monthsLeft: debt.months, monthsPaid: 0, percent: 0 };
         }
         if (check >= end) {
-            return {
-                status: 'completed',
-                currentMonth: debt.months,
-                totalMonths: debt.months,
-                monthsLeft: 0,
-                monthsPaid: debt.months,
-                percent: 100
-            };
+            return { status: 'completed', currentMonth: debt.months, totalMonths: debt.months, monthsLeft: 0, monthsPaid: debt.months, percent: 100 };
         }
-        // Active — count how many months have been paid
         const monthsSinceStart = (year - debt.startYear) * 12 + (month - debt.startMonth);
-        const currentMonthNum = monthsSinceStart + 1; // 1-indexed
+        const currentMonthNum = monthsSinceStart + 1;
         const monthsLeft = debt.months - monthsSinceStart;
 
-        // Count how many months in this installment have been marked paid
         let monthsPaid = 0;
         for (let i = 0; i < monthsSinceStart; i++) {
             const d = new Date(debt.startYear, debt.startMonth + i, 1);
             const key = getYearMonthKey(d.getFullYear(), d.getMonth());
-            if (payments[key] && payments[key][debt.id] && payments[key][debt.id].paid) {
-                monthsPaid++;
-            }
+            if (payments[key] && payments[key][debt.id] && payments[key][debt.id].paid) monthsPaid++;
         }
 
         const percent = Math.round((monthsPaid / debt.months) * 100);
-
-        return {
-            status: 'active',
-            currentMonth: currentMonthNum,
-            totalMonths: debt.months,
-            monthsLeft: monthsLeft,
-            monthsPaid: monthsPaid,
-            percent: percent,
-            monthsSinceStart
-        };
+        return { status: 'active', currentMonth: currentMonthNum, totalMonths: debt.months, monthsLeft, monthsPaid, percent, monthsSinceStart };
     }
 
-    // Helper: get the paid status of each month in an installment
     function getInstallmentMonthStatus(debt, currentYear, currentMonth) {
         const statuses = [];
         for (let i = 0; i < debt.months; i++) {
@@ -1352,9 +1366,7 @@
                     v = v.replace(/^0+/, '') || '0';
                 }
             } else {
-                if (v.length > 1 && v.startsWith('0')) {
-                    v = v.replace(/^0+/, '') || '0';
-                }
+                if (v.length > 1 && v.startsWith('0')) v = v.replace(/^0+/, '') || '0';
             }
             this.value = v;
         });
@@ -1408,15 +1420,15 @@
         return { cutoff1Total: c1, cutoff2Total: c2 };
     }
 
-    // ---- Firebase Sync ----
+    // ---- Firebase ----
     function setStatus(state, text) {
         statusDot.className = 'dot ' + state;
         statusText.textContent = text;
     }
 
     async function connectToSyncCode(code) {
-        if (!code || code.trim().length < 3) {
-            alert('Please enter a sync code with at least 3 characters.');
+        if (!code || code.trim().length < 12) {
+            alert('Sync code must be at least 12 characters (for security).\nExample: JUAN-DEBT-2024-XY');
             return;
         }
         const cleanCode = code.trim().toUpperCase().replace(/[^A-Z0-9\-_]/g, '');
@@ -1503,45 +1515,154 @@
         if (!syncCode || isRemoteUpdate) return;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => { pushToCloud(); }, 700);
+        saveLocalBackup();
     }
 
-    // ---- Payment tracking ----
-    function togglePaid(debtId) {
-        const { year, month } = getCurrentYearMonth();
-        const key = getYearMonthKey(year, month);
-        if (!payments[key]) payments[key] = {};
-        const debt = debts.find(d => d.id === debtId);
-        if (!debt) return;
+    // ---- Backup / Restore ----
+    function getBackupData() {
+        return {
+            debts: debts,
+            payments: payments,
+            nextId: nextId,
+            salary1: salary1Input.value,
+            salary2: salary2Input.value,
+            exportedAt: new Date().toISOString(),
+            version: 1,
+            appName: 'Debt & Salary Tracker'
+        };
+    }
 
-        if (payments[key][debtId] && payments[key][debtId].paid) {
-            delete payments[key][debtId];
-        } else {
-            payments[key][debtId] = {
-                paid: true,
-                paidAt: new Date().toISOString(),
-                amount: debt.amount,
-                name: debt.name,
-                category: debt.category || 'other'
-            };
+    function saveLocalBackup() {
+        try {
+            const data = getBackupData();
+            localStorage.setItem('debtTrackerLocalBackup', JSON.stringify(data));
+            localStorage.setItem('debtTrackerLocalBackupTime', new Date().toISOString());
+            updateLastBackupInfo();
+        } catch (e) {
+            console.warn('Local backup failed:', e);
         }
-        renderAll();
-        renderHistory();
     }
 
-    // ---- Undo ----
-    function showUndoToast(message) {
-        undoMessage.textContent = message;
-        undoToast.classList.add('show');
+    function loadLocalBackup() {
+        try {
+            const raw = localStorage.getItem('debtTrackerLocalBackup');
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function updateLastBackupInfo() {
+        const t = localStorage.getItem('debtTrackerLocalBackupTime');
+        if (!t) {
+            lastBackupInfo.textContent = 'No local backup yet';
+            lastBackupInfo.className = 'last-backup-info warn';
+            return;
+        }
+        const date = new Date(t);
+        const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+        const timeStr = date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        if (daysAgo === 0) {
+            lastBackupInfo.textContent = `✓ Local backup: ${timeStr}`;
+            lastBackupInfo.className = 'last-backup-info ok';
+        } else if (daysAgo < 7) {
+            lastBackupInfo.textContent = `Last backup: ${daysAgo}d ago`;
+            lastBackupInfo.className = 'last-backup-info';
+        } else {
+            lastBackupInfo.textContent = `⚠️ Backup ${daysAgo}d old — save a snapshot!`;
+            lastBackupInfo.className = 'last-backup-info warn';
+        }
+    }
+
+    function downloadSnapshot() {
+        const data = getBackupData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const d = new Date();
+        a.download = `debt-backup-${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        lastBackupTime = new Date();
+        saveLocalBackup();
+        showToast('✅ Snapshot downloaded!', false);
+    }
+
+    function handleImportFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const data = JSON.parse(evt.target.result);
+                if (!data || typeof data !== 'object') {
+                    throw new Error('File is not valid JSON');
+                }
+                if (!Array.isArray(data.debts)) {
+                    throw new Error('Missing "debts" array in file');
+                }
+
+                const debtCount = data.debts.length;
+                const paymentMonths = data.payments ? Object.keys(data.payments).length : 0;
+
+                const confirmMsg =
+                    `📥 Import backup?\n\n` +
+                    `• ${debtCount} debt${debtCount !== 1 ? 's' : ''}\n` +
+                    `• ${paymentMonths} month${paymentMonths !== 1 ? 's' : ''} of payment history\n` +
+                    `• Salary: ${data.salary1 || '1500'} / ${data.salary2 || '1500'}\n\n` +
+                    `⚠️ This will REPLACE your current data.\n` +
+                    `Continue?`;
+
+                if (!confirm(confirmMsg)) return;
+
+                // Restore
+                debts = data.debts || [];
+                payments = data.payments || {};
+                nextId = data.nextId || (debts.length ? Math.max(...debts.map(d => d.id || 0)) + 1 : 1);
+                if (data.salary1 !== undefined) salary1Input.value = data.salary1;
+                if (data.salary2 !== undefined) salary2Input.value = data.salary2;
+
+                renderAll();
+                renderHistory();
+                saveLocalBackup();
+                pushToCloud();
+
+                showToast(`✅ Imported ${debtCount} debts!`, false, 'success');
+
+            } catch (err) {
+                console.error('Import failed:', err);
+                alert('❌ Import failed:\n\n' + err.message);
+            }
+        };
+        reader.onerror = () => {
+            alert('❌ Failed to read file. Try again.');
+        };
+        reader.readAsText(file);
+    }
+
+    // ---- Toast ----
+    function showToast(message, showUndo = false, kind = '') {
+        toastMessage.textContent = message;
+        toast.className = 'toast show ' + kind;
+        if (showUndo) {
+            toastBtn.style.display = 'inline-block';
+        } else {
+            toastBtn.style.display = 'none';
+        }
         if (undoTimer) clearTimeout(undoTimer);
         undoTimer = setTimeout(() => {
-            undoToast.classList.remove('show');
+            toast.classList.remove('show');
             lastDeleted = null;
         }, 6000);
     }
-    function hideUndoToast() {
-        undoToast.classList.remove('show');
+
+    function hideToast() {
+        toast.classList.remove('show');
         if (undoTimer) clearTimeout(undoTimer);
     }
+
+    // ---- Delete / Undo ----
     function deleteDebt(id) {
         const debt = debts.find(d => d.id === id);
         if (!debt) return;
@@ -1552,14 +1673,15 @@
         debts = debts.filter(d => d.id !== id);
         renderAll();
         renderHistory();
-        showUndoToast(`Deleted "${debt.name}"`);
+        showToast(`Deleted "${debt.name}"`, true);
     }
+
     function undoDelete() {
         if (!lastDeleted) return;
         const { debt, index } = lastDeleted;
         debts.splice(Math.min(index, debts.length), 0, debt);
         lastDeleted = null;
-        hideUndoToast();
+        hideToast();
         renderAll();
         renderHistory();
     }
@@ -1574,10 +1696,10 @@
         renderAll();
     }
 
-    // ---- Rendering: Tracker ----
+    // ---- Render tracker ----
     function renderDebtList() {
         if (debts.length === 0) {
-            debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above.</div>`;
+            debtListContainer.innerHTML = `<div class="empty-msg">✨ No debts yet. Add one above, or import a backup.</div>`;
             return;
         }
         const today = new Date(); today.setHours(0,0,0,0);
@@ -1617,16 +1739,11 @@
                 const dueDay = debt.dueDay || 15;
                 cutoffLabel = getCutoffFromDay(dueDay) === 1 ? `1st cutoff (day ${dueDay})` : `2nd cutoff (day ${dueDay})`;
 
-                // Progress-driven classes and badges
                 const prog = progress || { status: 'active', monthsLeft: debt.months, monthsPaid: 0, percent: 0, totalMonths: debt.months, currentMonth: 1 };
-                if (prog.status === 'completed') {
-                    statusClass += ' completed';
-                } else if (prog.monthsLeft <= 2 && prog.status === 'active') {
-                    statusClass += ' nearly-done';
-                }
+                if (prog.status === 'completed') statusClass += ' completed';
+                else if (prog.monthsLeft <= 2 && prog.status === 'active') statusClass += ' nearly-done';
                 if (paid) statusClass += ' paid';
 
-                // Build badges
                 let extraBadges = '';
                 if (prog.status === 'completed') {
                     extraBadges = `<span class="completed-badge">✓ Completed</span>`;
@@ -1641,7 +1758,6 @@
                 }
                 if (paid) extraBadges += `<span class="paid-badge">✓ Paid</span>`;
 
-                // Build progress bar HTML (only if active or completed)
                 let progressHTML = '';
                 if (prog.status !== 'upcoming') {
                     const fillClass = prog.status === 'completed' ? 'completed' : (prog.monthsLeft <= 2 ? 'nearly-done' : '');
@@ -1651,13 +1767,13 @@
                         if (s.paid) dotClass += ' paid';
                         else if (s.isCurrent) dotClass += ' current';
                         else if (s.isFuture) dotClass += ' future';
-                        return `<div class="${dotClass}" title="Month ${i+1}${s.paid ? ' · Paid' : ''}${s.isCurrent ? ' · Current' : ''}">${s.paid ? '✓' : (i+1)}</div>`;
+                        return `<div class="${dotClass}">${s.paid ? '✓' : (i+1)}</div>`;
                     }).join('');
 
                     progressHTML = `
                         <div class="inst-progress">
                             <div class="inst-progress-header">
-                                <span>📊 Progress: ${prog.monthsPaid} of ${prog.totalMonths} months paid</span>
+                                <span>📊 ${prog.monthsPaid} of ${prog.totalMonths} months paid</span>
                                 <span class="months-left ${prog.monthsLeft <= 2 ? 'urgent' : ''}">
                                     ${prog.status === 'completed' ? '✓ Done!' : `${prog.monthsLeft} month${prog.monthsLeft !== 1 ? 's' : ''} left`}
                                 </span>
@@ -1695,7 +1811,6 @@
                         </div>
                     </div>`;
             } else {
-                // One-time debt (unchanged)
                 if (debt.dueDate) {
                     const dd = new Date(debt.dueDate + 'T00:00:00');
                     if (!isNaN(dd.getTime())) {
@@ -1828,7 +1943,7 @@
         scheduleSave();
     }
 
-    // ---- Rendering: History ----
+    // ---- Render history ----
     function renderHistory() {
         const keys = Object.keys(payments).sort().reverse();
         if (keys.length === 0) {
@@ -1841,19 +1956,17 @@
         }
 
         const currentKey = getYearMonthKey(...Object.values(getCurrentYearMonth()));
-
         let html = '';
+
         keys.forEach(key => {
             const [y, m] = key.split('-').map(Number);
             const monthLabel = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
             const isCurrent = key === currentKey;
-
             const monthPayments = payments[key];
             const entries = Object.entries(monthPayments).map(([debtId, info]) => ({
                 debtId: parseInt(debtId, 10),
                 ...info
             }));
-
             const totalPaid = entries.reduce((s, e) => s + (e.amount || 0), 0);
             const salary = (getSalary1() + getSalary2());
             const monthBalance = salary - totalPaid;
@@ -1867,27 +1980,16 @@
                         </div>
                     </div>
                     <div class="history-summary">
-                        <div class="history-stat">
-                            <div class="label">Total Paid</div>
-                            <div class="val paid">${formatCurrency(totalPaid)}</div>
-                        </div>
-                        <div class="history-stat">
-                            <div class="label">Salary (ref.)</div>
-                            <div class="val">${formatCurrency(salary)}</div>
-                        </div>
-                        <div class="history-stat">
-                            <div class="label">Balance</div>
-                            <div class="val ${monthBalance >= 0 ? 'balance-pos' : 'balance-neg'}">${formatCurrency(monthBalance)}</div>
-                        </div>
+                        <div class="history-stat"><div class="label">Total Paid</div><div class="val paid">${formatCurrency(totalPaid)}</div></div>
+                        <div class="history-stat"><div class="label">Salary (ref.)</div><div class="val">${formatCurrency(salary)}</div></div>
+                        <div class="history-stat"><div class="label">Balance</div><div class="val ${monthBalance >= 0 ? 'balance-pos' : 'balance-neg'}">${formatCurrency(monthBalance)}</div></div>
                     </div>
                     <div class="history-debts">
                         ${entries.map(e => {
                             const cat = getCategoryInfo(e.category);
                             return `
                                 <div class="history-debt-row paid">
-                                    <div class="history-debt-name">
-                                        <span>${cat.emoji}</span> ${escapeHtml(e.name)}
-                                    </div>
+                                    <div class="history-debt-name"><span>${cat.emoji}</span> ${escapeHtml(e.name)}</div>
                                     <div style="display:flex;align-items:center;gap:0.6rem;">
                                         <span class="history-debt-amt">${formatCurrency(e.amount)}</span>
                                         <span class="history-debt-status paid">✓ Paid</span>
@@ -1899,11 +2001,32 @@
                 </div>
             `;
         });
-
         historyContainer.innerHTML = html;
     }
 
-    // ---- Add debt ----
+    // ---- Actions ----
+    function togglePaid(debtId) {
+        const { year, month } = getCurrentYearMonth();
+        const key = getYearMonthKey(year, month);
+        if (!payments[key]) payments[key] = {};
+        const debt = debts.find(d => d.id === debtId);
+        if (!debt) return;
+
+        if (payments[key][debtId] && payments[key][debtId].paid) {
+            delete payments[key][debtId];
+        } else {
+            payments[key][debtId] = {
+                paid: true,
+                paidAt: new Date().toISOString(),
+                amount: debt.amount,
+                name: debt.name,
+                category: debt.category || 'other'
+            };
+        }
+        renderAll();
+        renderHistory();
+    }
+
     function addDebt() {
         const name = debtNameInput.value.trim();
         const amount = parseFloat(debtAmountInput.value);
@@ -1926,12 +2049,7 @@
                 const dd = new Date(dueDate + 'T00:00:00');
                 if (!isNaN(dd.getTime())) dueDay = dd.getDate();
             }
-            debts.push({
-                id: nextId++, name, amount, category,
-                isInstallment: true,
-                startYear: y, startMonth: m - 1,
-                months, dueDay
-            });
+            debts.push({ id: nextId++, name, amount, category, isInstallment: true, startYear: y, startMonth: m - 1, months, dueDay });
         }
 
         debtNameInput.value = '';
@@ -1946,11 +2064,20 @@
         if (confirm('Remove all debts? This cannot be undone.')) {
             debts = [];
             renderAll();
+            renderHistory();
         }
     }
 
     function resetAll() {
-        if (!confirm('Reset ALL data (salaries, debts, payments)?')) return;
+        const input = prompt(
+            '⚠️ This will DELETE all data (salaries, debts, payments).\n\n' +
+            'Type your sync code to confirm:'
+        );
+        if (input === null) return;
+        if (!syncCode || input.trim().toUpperCase() !== syncCode) {
+            alert('Sync code does not match. Reset cancelled.');
+            return;
+        }
         salary1Input.value = '1500.00';
         salary2Input.value = '1500.00';
         debts = [];
@@ -1963,6 +2090,7 @@
         setDefaultDates();
         renderAll();
         renderHistory();
+        showToast('✅ All data reset', false, 'success');
     }
 
     function setDefaultDates() {
@@ -1987,7 +2115,6 @@
     function openEditModal(id) {
         const debt = debts.find(d => d.id === id);
         if (!debt) return;
-
         editingDebtId = id;
         editingType = debt.isInstallment ? 'installment' : 'onetime';
 
@@ -2004,10 +2131,7 @@
         if (debt.isInstallment) {
             editMonths.value = debt.months;
             editStartMonth.value = `${debt.startYear}-${pad2(debt.startMonth + 1)}`;
-            const y = debt.startYear;
-            const m = pad2(debt.startMonth + 1);
-            const d = pad2(debt.dueDay || 15);
-            editDate.value = `${y}-${m}-${d}`;
+            editDate.value = `${debt.startYear}-${pad2(debt.startMonth + 1)}-${pad2(debt.dueDay || 15)}`;
         } else {
             editDate.value = debt.dueDate || '';
             const t = new Date();
@@ -2049,14 +2173,12 @@
             const startVal = editStartMonth.value;
             if (!startVal) { alert('Select a start month.'); return; }
             if (isNaN(months) || months < 2) { alert('Minimum 2 months.'); return; }
-
             const [y, m] = startVal.split('-').map(Number);
             let dueDay = 15;
             if (editDate.value) {
                 const dd = new Date(editDate.value + 'T00:00:00');
                 if (!isNaN(dd.getTime())) dueDay = dd.getDate();
             }
-
             debt.isInstallment = true;
             debt.startYear = y;
             debt.startMonth = m - 1;
@@ -2071,20 +2193,17 @@
             delete debt.months;
             delete debt.dueDay;
         }
-
         closeEditModal();
         renderAll();
     }
 
-    // ---- Tabs ----
     function setupTabs() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 btn.classList.add('active');
-                const tabId = 'tab-' + btn.dataset.tab;
-                const target = document.getElementById(tabId);
+                const target = document.getElementById('tab-' + btn.dataset.tab);
                 if (target) target.classList.add('active');
                 if (btn.dataset.tab === 'history') renderHistory();
             });
@@ -2110,35 +2229,15 @@
 
     debtListContainer.addEventListener('click', e => {
         const paidBtn = e.target.closest('.paid-btn');
-        if (paidBtn) {
-            const id = parseInt(paidBtn.dataset.id, 10);
-            if (!isNaN(id)) togglePaid(id);
-            return;
-        }
+        if (paidBtn) { const id = parseInt(paidBtn.dataset.id, 10); if (!isNaN(id)) togglePaid(id); return; }
         const editBtn = e.target.closest('.edit-debt');
-        if (editBtn) {
-            const id = parseInt(editBtn.dataset.id, 10);
-            if (!isNaN(id)) openEditModal(id);
-            return;
-        }
+        if (editBtn) { const id = parseInt(editBtn.dataset.id, 10); if (!isNaN(id)) openEditModal(id); return; }
         const removeBtn = e.target.closest('.remove-debt');
-        if (removeBtn) {
-            const id = parseInt(removeBtn.dataset.id, 10);
-            if (!isNaN(id)) deleteDebt(id);
-            return;
-        }
+        if (removeBtn) { const id = parseInt(removeBtn.dataset.id, 10); if (!isNaN(id)) deleteDebt(id); return; }
         const upBtn = e.target.closest('.move-up');
-        if (upBtn && !upBtn.disabled) {
-            const id = parseInt(upBtn.dataset.id, 10);
-            if (!isNaN(id)) moveDebt(id, 'up');
-            return;
-        }
+        if (upBtn && !upBtn.disabled) { const id = parseInt(upBtn.dataset.id, 10); if (!isNaN(id)) moveDebt(id, 'up'); return; }
         const downBtn = e.target.closest('.move-down');
-        if (downBtn && !downBtn.disabled) {
-            const id = parseInt(downBtn.dataset.id, 10);
-            if (!isNaN(id)) moveDebt(id, 'down');
-            return;
-        }
+        if (downBtn && !downBtn.disabled) { const id = parseInt(downBtn.dataset.id, 10); if (!isNaN(id)) moveDebt(id, 'down'); return; }
     });
 
     salary1Input.addEventListener('input', renderAll);
@@ -2156,23 +2255,22 @@
         });
     });
 
-    undoBtn.addEventListener('click', undoDelete);
-
-    // History controls
-    $('historyRefreshBtn').addEventListener('click', renderHistory);
-    $('historyExportBtn').addEventListener('click', () => {
-        const data = {
-            debts, payments, salary1: salary1Input.value, salary2: salary2Input.value,
-            exportedAt: new Date().toISOString()
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `debt-history-${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+    // Backup buttons
+    importBtn.addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) handleImportFile(file);
+        e.target.value = '';
     });
+    snapshotBtn.addEventListener('click', downloadSnapshot);
+
+    toastBtn.addEventListener('click', () => {
+        if (lastDeleted) undoDelete();
+    });
+
+    // History buttons
+    $('historyRefreshBtn').addEventListener('click', renderHistory);
+    $('historyExportBtn').addEventListener('click', downloadSnapshot);
 
     // Edit modal
     editTypeToggle.addEventListener('click', e => {
@@ -2188,14 +2286,12 @@
     });
     editCancelBtn.addEventListener('click', closeEditModal);
     editSaveBtn.addEventListener('click', saveEdit);
-    editModal.addEventListener('click', e => {
-        if (e.target === editModal) closeEditModal();
-    });
+    editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && editModal.classList.contains('show')) closeEditModal();
     });
 
-    // Decimal input
+    // Decimal
     enableDecimalInput(salary1Input, true);
     enableDecimalInput(salary2Input, true);
     enableDecimalInput(debtAmountInput, true);
@@ -2207,17 +2303,28 @@
     setDefaultDates();
     setType('onetime');
     setupTabs();
+    updateLastBackupInfo();
+
+    // Auto-load local backup if Firestore is empty
+    const localBackup = loadLocalBackup();
+    if (localBackup && localBackup.debts && localBackup.debts.length > 0) {
+        // Don't auto-load — just show a hint
+        console.log('Local backup available:', localBackup.debts.length, 'debts');
+    }
 
     const lastCode = localStorage.getItem('lastSyncCode');
     if (lastCode) {
         syncCodeInput.value = lastCode;
         connectToSyncCode(lastCode);
     } else {
-        syncCodeInput.placeholder = 'Try: JUAN-DEBT-2024';
+        syncCodeInput.placeholder = 'min 12 chars, e.g. JUAN-DEBT-2024-XY';
     }
 
     renderAll();
     renderHistory();
+
+    // Periodic local save (every 60 seconds, as safety net)
+    setInterval(() => { saveLocalBackup(); }, 60000);
 </script>
 </body>
 </html>

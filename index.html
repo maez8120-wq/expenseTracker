@@ -69,10 +69,7 @@
             font-weight: 600;
             margin-right: 0.5rem;
         }
-        .backup-bar .btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
+        .backup-bar .btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
         .last-backup-info {
             font-size: 0.75rem;
             color: #4e6b7c;
@@ -303,6 +300,95 @@
             color: white;
         }
         .btn-primary:hover { background: #135b82; border-color: #135b82; }
+
+        /* ============ INCOME SECTION ============ */
+        .income-add-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .income-add-row .input-wrapper { flex: 1; }
+        .income-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+        .income-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f2f9fe;
+            border-radius: 1rem;
+            padding: 0.6rem 0.8rem;
+            border-left: 4px solid #3498db;
+            flex-wrap: wrap;
+        }
+        .income-item.cutoff-1 { border-left-color: #3498db; background: #ebf5fb; }
+        .income-item.cutoff-2 { border-left-color: #27ae60; background: #ebfaf1; }
+        .income-item .income-name {
+            flex: 2;
+            min-width: 100px;
+            font-weight: 600;
+            color: #134257;
+            font-size: 0.9rem;
+        }
+        .income-item .income-amount {
+            font-weight: 700;
+            color: #0e3a4e;
+            font-size: 0.9rem;
+            background: white;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            border: 1px solid #d0e2ec;
+        }
+        .income-item .income-cutoff {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            color: white;
+        }
+        .income-item.cutoff-1 .income-cutoff { background: #3498db; }
+        .income-item.cutoff-2 .income-cutoff { background: #27ae60; }
+        .income-item .income-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .income-empty {
+            text-align: center;
+            padding: 1rem;
+            color: #8aaabc;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        .income-totals {
+            background: #143b4e;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .income-total-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        .income-total-line .label { color: #a2c4d8; }
+        .income-total-line .val { font-weight: 700; color: white; }
+        .income-total-line.total {
+            border-top: 1px solid #356a83;
+            padding-top: 0.5rem;
+            margin-top: 0.25rem;
+            font-size: 1.05rem;
+        }
+        .income-total-line.total .val { color: #7ee6a8; font-size: 1.2rem; }
 
         .debt-list { margin-top: 0.5rem; max-height: 480px; overflow-y: auto; padding-right: 0.25rem; }
         .debt-item {
@@ -727,14 +813,6 @@
             border-radius: 30px;
             font-weight: 500;
         }
-        .twice-badge-sm {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-            font-size: 0.7rem;
-            padding: 0.1rem 0.6rem;
-            border-radius: 30px;
-            font-weight: 600;
-        }
 
         /* History */
         .history-month {
@@ -904,7 +982,7 @@
         <span>☁️ cloud sync</span>
     </h1>
     <div class="subhead">
-        Synced + auto-backup. Installments can be monthly or twice-monthly.
+        Unlimited income sources. Synced + auto-backup.
     </div>
 
     <div class="backup-bar">
@@ -933,42 +1011,45 @@
 
     <div class="tab-content active" id="tab-tracker">
         <div class="grid">
+            <!-- LEFT: Income sources -->
             <div class="section">
-                <h2><i>💵</i> Salary per cutoff</h2>
-                <div class="input-group">
-                    <label>1st cutoff (1–15) <span class="badge">₱ / $</span></label>
-                    <div class="input-wrapper">
-                        <input type="text" id="salary1" placeholder="0.00" inputmode="decimal" value="1500.00">
-                        <span class="currency">PHP</span>
+                <h2><i>💵</i> Income sources</h2>
+
+                <div class="income-add-row">
+                    <div class="input-wrapper" style="padding-left: 1rem; min-width: 130px; flex: 2;">
+                        <input type="text" id="incomeName" placeholder="e.g. 15th Salary">
                     </div>
+                    <div class="input-wrapper" style="min-width: 90px; flex: 1;">
+                        <input type="text" id="incomeAmount" placeholder="0.00" inputmode="decimal">
+                    </div>
+                    <div class="input-wrapper" style="min-width: 90px; flex: 1;">
+                        <select id="incomeCutoff">
+                            <option value="1">1st (1–15)</option>
+                            <option value="2">2nd (16–31)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="addIncomeBtn" style="padding: 0.7rem 1rem;">+ Add</button>
                 </div>
-                <div class="input-group">
-                    <label>2nd cutoff (16–31) <span class="badge">₱ / $</span></label>
-                    <div class="input-wrapper">
-                        <input type="text" id="salary2" placeholder="0.00" inputmode="decimal" value="1500.00">
-                        <span class="currency">PHP</span>
+
+                <div class="income-list" id="incomeList"></div>
+
+                <div class="income-totals">
+                    <div class="income-total-line">
+                        <span class="label">📅 1st cutoff (1–15)</span>
+                        <span class="val" id="incomeCutoff1Total">₱0.00</span>
                     </div>
-                </div>
-                <div style="margin-top: 1.8rem;">
-                    <div style="background: #e3f0f7; border-radius: 1.2rem; padding: 0.9rem 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
-                            <span style="color: #1f5068; font-weight: 500;">Total monthly salary</span>
-                            <span style="font-weight: 700; color: #0b2c3f;" id="totalSalaryDisplay">₱3,000.00</span>
-                        </div>
+                    <div class="income-total-line">
+                        <span class="label">📅 2nd cutoff (16–31)</span>
+                        <span class="val" id="incomeCutoff2Total">₱0.00</span>
                     </div>
-                </div>
-                <div style="margin-top: 1.2rem; background: #f2f9fe; border-radius: 1.2rem; padding: 0.8rem 1.2rem;">
-                    <div class="cutoff-summary-line">
-                        <span>📅 1st cutoff debt due:</span>
-                        <strong id="cutoff1DebtDisplay">₱0.00</strong>
-                    </div>
-                    <div class="cutoff-summary-line" style="border-top: 1px solid #d0e2ec; padding-top: 0.5rem;">
-                        <span>📅 2nd cutoff debt due:</span>
-                        <strong id="cutoff2DebtDisplay">₱0.00</strong>
+                    <div class="income-total-line total">
+                        <span class="label">Total monthly income</span>
+                        <span class="val" id="incomeTotal">₱0.00</span>
                     </div>
                 </div>
             </div>
 
+            <!-- RIGHT: Add debt -->
             <div class="section">
                 <h2><i>📋</i> Add debt</h2>
                 <div class="installment-toggle" id="typeToggle">
@@ -1029,14 +1110,10 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- NEW: Frequency toggle -->
                     <div class="frequency-toggle" id="frequencyToggle">
                         <button class="active" data-freq="once">🔹 Once a month</button>
                         <button data-freq="twice">🔸 Twice a month</button>
                     </div>
-
-                    <!-- Due day 1 (always shown for installment) -->
                     <div class="flex-row" style="margin-top: 0.75rem;">
                         <div class="input-group" style="flex:1; min-width: 120px;">
                             <label id="dueDay1Label">📅 Due day</label>
@@ -1051,7 +1128,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="installment-info" id="installmentInfo">
                         ℹ️ Progress is tracked automatically each month.
                     </div>
@@ -1069,13 +1145,13 @@
             <div class="summary-title">📊 Monthly breakdown</div>
             <div class="summary-grid">
                 <div class="summary-item">
-                    <div class="label">1st cutoff salary</div>
-                    <div class="value" id="summarySalary1">₱1,500.00</div>
+                    <div class="label">1st cutoff income</div>
+                    <div class="value" id="summarySalary1">₱0.00</div>
                     <div class="sub" id="summaryCutoff1Debt">Debt due: ₱0.00</div>
                 </div>
                 <div class="summary-item">
-                    <div class="label">2nd cutoff salary</div>
-                    <div class="value" id="summarySalary2">₱1,500.00</div>
+                    <div class="label">2nd cutoff income</div>
+                    <div class="value" id="summarySalary2">₱0.00</div>
                     <div class="sub" id="summaryCutoff2Debt">Debt due: ₱0.00</div>
                 </div>
             </div>
@@ -1088,8 +1164,8 @@
                 </div>
                 <div class="summary-item">
                     <div class="label">Monthly balance</div>
-                    <div class="value" id="monthlyBalanceDisplay">₱3,000.00</div>
-                    <div class="sub">Salary – remaining debts</div>
+                    <div class="value" id="monthlyBalanceDisplay">₱0.00</div>
+                    <div class="sub">Income – remaining debts</div>
                 </div>
             </div>
             <div class="payment-schedule">
@@ -1107,7 +1183,7 @@
             </div>
         </div>
         <div class="footer-note">
-            Data syncs automatically. Deleted debts can be undone for 6 seconds.
+            Data syncs automatically. Deleted items can be undone for 6 seconds.
         </div>
     </div>
 
@@ -1130,22 +1206,20 @@
     <button id="toastBtn" style="display:none;">↩️ Undo</button>
 </div>
 
+<!-- EDIT DEBT MODAL -->
 <div class="modal-backdrop" id="editModal">
     <div class="modal">
         <h3>✏️ Edit debt</h3>
-
         <div class="installment-toggle" id="editTypeToggle">
             <button class="active" data-type="onetime">🔹 One-time</button>
             <button data-type="installment">🔁 Installment</button>
         </div>
-
         <div class="input-group">
             <label>Debt name</label>
             <div class="input-wrapper" style="padding-left:1rem;">
                 <input type="text" id="editName" placeholder="e.g. Rent">
             </div>
         </div>
-
         <div class="input-group">
             <label>Amount / month</label>
             <div class="input-wrapper">
@@ -1153,7 +1227,6 @@
                 <span class="currency">₱</span>
             </div>
         </div>
-
         <div class="input-group">
             <label>🏷️ Category</label>
             <div class="input-wrapper">
@@ -1166,58 +1239,77 @@
                 </select>
             </div>
         </div>
-
         <div class="input-group" id="editDateGroup">
             <label id="editDateLabel">📅 Payment date</label>
             <div class="input-wrapper">
                 <input type="date" id="editDate">
             </div>
         </div>
-
         <div class="installment-fields" id="editInstallmentFields">
             <div class="flex-row">
                 <div class="input-group" style="flex:1;">
                     <label>🔢 Months</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="editMonths" inputmode="numeric">
-                    </div>
+                    <div class="input-wrapper"><input type="text" id="editMonths" inputmode="numeric"></div>
                 </div>
                 <div class="input-group" style="flex:1;">
                     <label>📅 Start month</label>
-                    <div class="input-wrapper">
-                        <input type="month" id="editStartMonth">
-                    </div>
+                    <div class="input-wrapper"><input type="month" id="editStartMonth"></div>
                 </div>
             </div>
-
             <div class="frequency-toggle" id="editFrequencyToggle">
                 <button class="active" data-freq="once">🔹 Once a month</button>
                 <button data-freq="twice">🔸 Twice a month</button>
             </div>
-
             <div class="flex-row" style="margin-top: 0.75rem;">
                 <div class="input-group" style="flex:1;">
                     <label id="editDueDay1Label">📅 Due day</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="editDueDay1" inputmode="numeric" placeholder="1-31" value="15">
-                    </div>
+                    <div class="input-wrapper"><input type="text" id="editDueDay1" inputmode="numeric" placeholder="1-31" value="15"></div>
                 </div>
                 <div class="input-group" id="editDueDay2Group" style="flex:1; display: none;">
                     <label>📅 Second due day</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="editDueDay2" inputmode="numeric" placeholder="1-31" value="30">
-                    </div>
+                    <div class="input-wrapper"><input type="text" id="editDueDay2" inputmode="numeric" placeholder="1-31" value="30"></div>
                 </div>
             </div>
         </div>
-
         <div class="modal-note" id="editNote">
             Tip: If you meant to add this as an installment, just switch the toggle above.
         </div>
-
         <div class="modal-actions">
             <button class="btn" id="editCancelBtn">Cancel</button>
             <button class="btn btn-primary" id="editSaveBtn">Save changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT INCOME MODAL -->
+<div class="modal-backdrop" id="editIncomeModal">
+    <div class="modal" style="max-width: 420px;">
+        <h3>✏️ Edit income</h3>
+        <div class="input-group">
+            <label>Name</label>
+            <div class="input-wrapper" style="padding-left:1rem;">
+                <input type="text" id="editIncomeName" placeholder="e.g. 15th Salary">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Amount</label>
+            <div class="input-wrapper">
+                <input type="text" id="editIncomeAmount" placeholder="0.00" inputmode="decimal">
+                <span class="currency">₱</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Cutoff</label>
+            <div class="input-wrapper">
+                <select id="editIncomeCutoff">
+                    <option value="1">1st cutoff (1–15)</option>
+                    <option value="2">2nd cutoff (16–31)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" id="editIncomeCancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="editIncomeSaveBtn">Save changes</button>
         </div>
     </div>
 </div>
@@ -1246,9 +1338,10 @@
 
     // ---- State ----
     let debts = [];
+    let incomes = [];        // [{ id, name, amount, cutoff: 1|2 }]
     let nextId = 1;
-    let payments = {};        // { "YYYY-MM": { debtId: { paid: true, ... } } }
-                              // For twice-a-month: { "YYYY-MM": { debtId: { paid1: true, paid2: true, ... } } }
+    let nextIncomeId = 1;
+    let payments = {};
     let currentType = 'onetime';
     let currentFreq = 'once';
     let syncCode = null;
@@ -1259,6 +1352,8 @@
     let editingDebtId = null;
     let editingType = 'onetime';
     let editingFreq = 'once';
+    let editingIncomeId = null;
+
     let lastDeleted = null;
     let undoTimer = null;
 
@@ -1272,8 +1367,6 @@
 
     // ---- DOM ----
     const $ = id => document.getElementById(id);
-    const salary1Input = $('salary1');
-    const salary2Input = $('salary2');
     const debtNameInput = $('debtName');
     const debtAmountInput = $('debtAmount');
     const debtCategoryInput = $('debtCategory');
@@ -1282,11 +1375,6 @@
     const clearDebtsBtn = $('clearDebtsBtn');
     const debtListContainer = $('debtListContainer');
     const debtCountSpan = $('debtCount');
-    const totalSalaryDisplay = $('totalSalaryDisplay');
-    const summarySalary1 = $('summarySalary1');
-    const summarySalary2 = $('summarySalary2');
-    const summaryCutoff1Debt = $('summaryCutoff1Debt');
-    const summaryCutoff2Debt = $('summaryCutoff2Debt');
     const totalDebtDisplay = $('totalDebtDisplay');
     const totalDebtSub = $('totalDebtSub');
     const monthlyBalanceDisplay = $('monthlyBalanceDisplay');
@@ -1317,6 +1405,20 @@
     const snapshotBtn = $('snapshotBtn');
     const lastBackupInfo = $('lastBackupInfo');
 
+    // Income DOM
+    const incomeNameInput = $('incomeName');
+    const incomeAmountInput = $('incomeAmount');
+    const incomeCutoffInput = $('incomeCutoff');
+    const addIncomeBtn = $('addIncomeBtn');
+    const incomeListEl = $('incomeList');
+    const incomeCutoff1Total = $('incomeCutoff1Total');
+    const incomeCutoff2Total = $('incomeCutoff2Total');
+    const incomeTotal = $('incomeTotal');
+    const summarySalary1 = $('summarySalary1');
+    const summarySalary2 = $('summarySalary2');
+    const summaryCutoff1Debt = $('summaryCutoff1Debt');
+    const summaryCutoff2Debt = $('summaryCutoff2Debt');
+
     const toast = $('toast');
     const toastMessage = $('toastMessage');
     const toastBtn = $('toastBtn');
@@ -1328,7 +1430,6 @@
     const editCategory = $('editCategory');
     const editDate = $('editDate');
     const editDateGroup = $('editDateGroup');
-    const editDateLabel = $('editDateLabel');
     const editInstallmentFields = $('editInstallmentFields');
     const editMonths = $('editMonths');
     const editStartMonth = $('editStartMonth');
@@ -1339,20 +1440,22 @@
     const editDueDay1Label = $('editDueDay1Label');
     const editCancelBtn = $('editCancelBtn');
     const editSaveBtn = $('editSaveBtn');
-    const editNote = $('editNote');
+
+    const editIncomeModal = $('editIncomeModal');
+    const editIncomeName = $('editIncomeName');
+    const editIncomeAmount = $('editIncomeAmount');
+    const editIncomeCutoff = $('editIncomeCutoff');
+    const editIncomeCancelBtn = $('editIncomeCancelBtn');
+    const editIncomeSaveBtn = $('editIncomeSaveBtn');
 
     // ---- Utility ----
     function formatCurrency(amount) {
         return '₱' + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
-    function getSalary1() {
-        const v = parseFloat(salary1Input.value);
-        return isNaN(v) || v < 0 ? 0 : v;
-    }
-    function getSalary2() {
-        const v = parseFloat(salary2Input.value);
-        return isNaN(v) || v < 0 ? 0 : v;
-    }
+    function getIncomeCutoff1() { return incomes.filter(i => i.cutoff === 1).reduce((s, i) => s + i.amount, 0); }
+    function getIncomeCutoff2() { return incomes.filter(i => i.cutoff === 2).reduce((s, i) => s + i.amount, 0); }
+    function getTotalIncome() { return getIncomeCutoff1() + getIncomeCutoff2(); }
+
     function getCutoffFromDay(day) { return day <= 15 ? 1 : 2; }
     function getCurrentYearMonth() {
         const n = new Date();
@@ -1375,23 +1478,14 @@
                 .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
     function pad2(n) { return String(n).padStart(2, '0'); }
-    function getCategoryInfo(key) {
-        return CATEGORIES[key] || CATEGORIES.other;
-    }
+    function getCategoryInfo(key) { return CATEGORIES[key] || CATEGORIES.other; }
 
-    // ---- Payment helpers (handles both once & twice) ----
-    // A debt's payment record for a month can have:
-    //   paid: true               → fully paid (once-a-month)
-    //   paid1: true, paid2: true → both halves paid (twice-a-month)
-    //   paid1: true only         → first half only
-    //   paid2: true only         → second half only
+    // ---- Payment helpers ----
     function isPaid(debtId, year, month) {
         const key = getYearMonthKey(year, month);
         const rec = payments[key] && payments[key][debtId];
         if (!rec) return false;
-        // Once-a-month: paid flag
         if (rec.paid) return true;
-        // Twice-a-month: both halves paid
         if (rec.paid1 && rec.paid2) return true;
         return false;
     }
@@ -1399,7 +1493,7 @@
         const key = getYearMonthKey(year, month);
         const rec = payments[key] && payments[key][debtId];
         if (!rec) return false;
-        if (rec.paid) return false; // fully paid, not half
+        if (rec.paid) return false;
         const p1 = !!rec.paid1, p2 = !!rec.paid2;
         return (p1 || p2) && !(p1 && p2);
     }
@@ -1410,37 +1504,28 @@
         const start = new Date(debt.startYear, debt.startMonth, 1);
         const end = new Date(debt.startYear, debt.startMonth + debt.months, 1);
         const check = new Date(year, month, 1);
-
-        if (check < start) {
-            return { status: 'upcoming', currentMonth: 0, totalMonths: debt.months, monthsLeft: debt.months, monthsPaid: 0, percent: 0 };
-        }
-        if (check >= end) {
-            return { status: 'completed', currentMonth: debt.months, totalMonths: debt.months, monthsLeft: 0, monthsPaid: debt.months, percent: 100 };
-        }
+        if (check < start) return { status: 'upcoming', monthsLeft: debt.months, monthsPaid: 0, percent: 0, totalMonths: debt.months };
+        if (check >= end) return { status: 'completed', monthsLeft: 0, monthsPaid: debt.months, percent: 100, totalMonths: debt.months };
         const monthsSinceStart = (year - debt.startYear) * 12 + (month - debt.startMonth);
-        const currentMonthNum = monthsSinceStart + 1;
         const monthsLeft = debt.months - monthsSinceStart;
-
-        // Count fully-paid months
         let monthsPaid = 0;
         for (let i = 0; i < debt.months; i++) {
             const d = new Date(debt.startYear, debt.startMonth + i, 1);
             if (isPaid(debt.id, d.getFullYear(), d.getMonth())) monthsPaid++;
         }
-
-        const percent = Math.round((monthsPaid / debt.months) * 100);
-        return { status: 'active', currentMonth: currentMonthNum, totalMonths: debt.months, monthsLeft, monthsPaid, percent, monthsSinceStart };
+        return { status: 'active', monthsLeft, monthsPaid, percent: Math.round((monthsPaid/debt.months)*100), totalMonths: debt.months, monthsSinceStart };
     }
-
     function getInstallmentMonthStatus(debt, currentYear, currentMonth) {
         const statuses = [];
         for (let i = 0; i < debt.months; i++) {
             const d = new Date(debt.startYear, debt.startMonth + i, 1);
-            const paid = isPaid(debt.id, d.getFullYear(), d.getMonth());
-            const halfPaid = isHalfPaid(debt.id, d.getFullYear(), d.getMonth());
-            const isCurrent = (d.getFullYear() === currentYear && d.getMonth() === currentMonth);
-            const isFuture = (d.getFullYear() > currentYear) || (d.getFullYear() === currentYear && d.getMonth() > currentMonth);
-            statuses.push({ monthIndex: i, paid, halfPaid, isCurrent, isFuture });
+            statuses.push({
+                monthIndex: i,
+                paid: isPaid(debt.id, d.getFullYear(), d.getMonth()),
+                halfPaid: isHalfPaid(debt.id, d.getFullYear(), d.getMonth()),
+                isCurrent: (d.getFullYear() === currentYear && d.getMonth() === currentMonth),
+                isFuture: (d.getFullYear() > currentYear) || (d.getFullYear() === currentYear && d.getMonth() > currentMonth)
+            });
         }
         return statuses;
     }
@@ -1479,7 +1564,6 @@
         });
     }
 
-    // ---- Day of month validation ----
     function clampDay(val) {
         let n = parseInt(val, 10);
         if (isNaN(n)) return '';
@@ -1489,12 +1573,8 @@
     }
     function enableDayInput(el) {
         if (!el) return;
-        el.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-        el.addEventListener('blur', function() {
-            if (this.value) this.value = clampDay(this.value);
-        });
+        el.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); });
+        el.addEventListener('blur', function() { if (this.value) this.value = clampDay(this.value); });
     }
 
     // ---- Active debts ----
@@ -1521,6 +1601,7 @@
     }
     function calculateCutoffDebts() {
         const { year, month } = getCurrentYearMonth();
+        const key = getYearMonthKey(year, month);
         let c1 = 0, c2 = 0;
         getActiveDebts().forEach(debt => {
             if (isPaid(debt.id, year, month)) return;
@@ -1529,14 +1610,11 @@
                     const half = debt.amount / 2;
                     const day1 = debt.dueDay || 15;
                     const day2 = debt.dueDay2 || 30;
-                    const p1 = payments[getYearMonthKey(year, month)] && payments[getYearMonthKey(year, month)][debt.id] && payments[getYearMonthKey(year, month)][debt.id].paid1;
-                    const p2 = payments[getYearMonthKey(year, month)] && payments[getYearMonthKey(year, month)][debt.id] && payments[getYearMonthKey(year, month)][debt.id].paid2;
-                    if (!p1) {
-                        if (getCutoffFromDay(day1) === 1) c1 += half; else c2 += half;
-                    }
-                    if (!p2) {
-                        if (getCutoffFromDay(day2) === 1) c1 += half; else c2 += half;
-                    }
+                    const rec = payments[key] && payments[key][debt.id];
+                    const p1 = rec && rec.paid1;
+                    const p2 = rec && rec.paid2;
+                    if (!p1) { if (getCutoffFromDay(day1) === 1) c1 += half; else c2 += half; }
+                    if (!p2) { if (getCutoffFromDay(day2) === 1) c1 += half; else c2 += half; }
                 } else {
                     const dueDay = debt.dueDay || 15;
                     if (getCutoffFromDay(dueDay) === 1) c1 += debt.amount; else c2 += debt.amount;
@@ -1559,7 +1637,7 @@
 
     async function connectToSyncCode(code) {
         if (!code || code.trim().length < 12) {
-            alert('Sync code must be at least 12 characters (for security).');
+            alert('Sync code must be at least 12 characters.');
             return;
         }
         const cleanCode = code.trim().toUpperCase().replace(/[^A-Z0-9\-_]/g, '');
@@ -1578,9 +1656,18 @@
                     isRemoteUpdate = true;
                     debts = data.debts || [];
                     payments = data.payments || {};
-                    nextId = data.nextId || 1;
-                    if (data.salary1 !== undefined) salary1Input.value = data.salary1;
-                    if (data.salary2 !== undefined) salary2Input.value = data.salary2;
+                    incomes = data.incomes || [];
+                    // Support legacy salary1/salary2 migration
+                    if ((!incomes || incomes.length === 0) && (data.salary1 !== undefined || data.salary2 !== undefined)) {
+                        if (data.salary1 && parseFloat(data.salary1) > 0) {
+                            incomes.push({ id: nextIncomeId++, name: '1st cutoff salary', amount: parseFloat(data.salary1) || 0, cutoff: 1 });
+                        }
+                        if (data.salary2 && parseFloat(data.salary2) > 0) {
+                            incomes.push({ id: nextIncomeId++, name: '2nd cutoff salary', amount: parseFloat(data.salary2) || 0, cutoff: 2 });
+                        }
+                    }
+                    nextId = data.nextId || (debts.length ? Math.max(...debts.map(d => d.id || 0)) + 1 : 1);
+                    nextIncomeId = data.nextIncomeId || (incomes.length ? Math.max(...incomes.map(i => i.id || 0)) + 1 : 1);
                     renderAll();
                     renderHistory();
                     isRemoteUpdate = false;
@@ -1597,9 +1684,9 @@
                 isRemoteUpdate = true;
                 debts = data.debts || [];
                 payments = data.payments || {};
+                incomes = data.incomes || [];
                 nextId = data.nextId || 1;
-                if (data.salary1 !== undefined) salary1Input.value = data.salary1;
-                if (data.salary2 !== undefined) salary2Input.value = data.salary2;
+                nextIncomeId = data.nextIncomeId || 1;
                 renderAll();
                 renderHistory();
                 isRemoteUpdate = false;
@@ -1626,9 +1713,12 @@
             await setDoc(ref, {
                 debts: debts,
                 payments: payments,
+                incomes: incomes,
                 nextId: nextId,
-                salary1: salary1Input.value,
-                salary2: salary2Input.value,
+                nextIncomeId: nextIncomeId,
+                // Keep legacy fields for backward compatibility
+                salary1: getIncomeCutoff1().toFixed(2),
+                salary2: getIncomeCutoff2().toFixed(2),
                 updatedAt: new Date().toISOString()
             });
             setStatus('online', `Synced · ${syncCode}`);
@@ -1650,15 +1740,14 @@
         return {
             debts: debts,
             payments: payments,
+            incomes: incomes,
             nextId: nextId,
-            salary1: salary1Input.value,
-            salary2: salary2Input.value,
+            nextIncomeId: nextIncomeId,
             exportedAt: new Date().toISOString(),
-            version: 2,
+            version: 3,
             appName: 'Debt & Salary Tracker'
         };
     }
-
     function saveLocalBackup() {
         try {
             localStorage.setItem('debtTrackerLocalBackup', JSON.stringify(getBackupData()));
@@ -1666,29 +1755,16 @@
             updateLastBackupInfo();
         } catch (e) {}
     }
-
     function updateLastBackupInfo() {
         const t = localStorage.getItem('debtTrackerLocalBackupTime');
-        if (!t) {
-            lastBackupInfo.textContent = 'No local backup yet';
-            lastBackupInfo.className = 'last-backup-info warn';
-            return;
-        }
+        if (!t) { lastBackupInfo.textContent = 'No local backup yet'; lastBackupInfo.className = 'last-backup-info warn'; return; }
         const date = new Date(t);
         const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
         const timeStr = date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        if (daysAgo === 0) {
-            lastBackupInfo.textContent = `✓ Local backup: ${timeStr}`;
-            lastBackupInfo.className = 'last-backup-info ok';
-        } else if (daysAgo < 7) {
-            lastBackupInfo.textContent = `Last backup: ${daysAgo}d ago`;
-            lastBackupInfo.className = 'last-backup-info';
-        } else {
-            lastBackupInfo.textContent = `⚠️ Backup ${daysAgo}d old`;
-            lastBackupInfo.className = 'last-backup-info warn';
-        }
+        if (daysAgo === 0) { lastBackupInfo.textContent = `✓ Local backup: ${timeStr}`; lastBackupInfo.className = 'last-backup-info ok'; }
+        else if (daysAgo < 7) { lastBackupInfo.textContent = `Last backup: ${daysAgo}d ago`; lastBackupInfo.className = 'last-backup-info'; }
+        else { lastBackupInfo.textContent = `⚠️ Backup ${daysAgo}d old`; lastBackupInfo.className = 'last-backup-info warn'; }
     }
-
     function downloadSnapshot() {
         const data = getBackupData();
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1702,7 +1778,6 @@
         saveLocalBackup();
         showToast('✅ Snapshot downloaded!', false, 'success');
     }
-
     function handleImportFile(file) {
         if (!file) return;
         const reader = new FileReader();
@@ -1711,24 +1786,27 @@
                 const data = JSON.parse(evt.target.result);
                 if (!data || typeof data !== 'object') throw new Error('File is not valid JSON');
                 if (!Array.isArray(data.debts)) throw new Error('Missing "debts" array');
-
                 const debtCount = data.debts.length;
+                const incomeCount = (data.incomes || []).length;
                 const paymentMonths = data.payments ? Object.keys(data.payments).length : 0;
-                const confirmMsg = `📥 Import backup?\n\n• ${debtCount} debt(s)\n• ${paymentMonths} month(s) of payments\n• Salaries: ${data.salary1 || '1500'} / ${data.salary2 || '1500'}\n\n⚠️ This will REPLACE current data. Continue?`;
-
+                const confirmMsg = `📥 Import backup?\n\n• ${debtCount} debt(s)\n• ${incomeCount} income source(s)\n• ${paymentMonths} month(s) of payments\n\n⚠️ This will REPLACE current data. Continue?`;
                 if (!confirm(confirmMsg)) return;
 
                 debts = data.debts || [];
                 payments = data.payments || {};
+                incomes = data.incomes || [];
+                // Legacy migration
+                if (incomes.length === 0 && (data.salary1 || data.salary2)) {
+                    if (data.salary1 && parseFloat(data.salary1) > 0) incomes.push({ id: 1, name: '1st cutoff salary', amount: parseFloat(data.salary1), cutoff: 1 });
+                    if (data.salary2 && parseFloat(data.salary2) > 0) incomes.push({ id: 2, name: '2nd cutoff salary', amount: parseFloat(data.salary2), cutoff: 2 });
+                }
                 nextId = data.nextId || (debts.length ? Math.max(...debts.map(d => d.id || 0)) + 1 : 1);
-                if (data.salary1 !== undefined) salary1Input.value = data.salary1;
-                if (data.salary2 !== undefined) salary2Input.value = data.salary2;
-
+                nextIncomeId = data.nextIncomeId || (incomes.length ? Math.max(...incomes.map(i => i.id || 0)) + 1 : 1);
                 renderAll();
                 renderHistory();
                 saveLocalBackup();
                 pushToCloud();
-                showToast(`✅ Imported ${debtCount} debts!`, false, 'success');
+                showToast(`✅ Imported ${debtCount} debts, ${incomeCount} incomes!`, false, 'success');
             } catch (err) {
                 console.error('Import failed:', err);
                 alert('❌ Import failed:\n\n' + err.message);
@@ -1744,10 +1822,7 @@
         toast.className = 'toast show ' + kind;
         toastBtn.style.display = showUndo ? 'inline-block' : 'none';
         if (undoTimer) clearTimeout(undoTimer);
-        undoTimer = setTimeout(() => {
-            toast.classList.remove('show');
-            lastDeleted = null;
-        }, 6000);
+        undoTimer = setTimeout(() => { toast.classList.remove('show'); lastDeleted = null; }, 6000);
     }
     function hideToast() {
         toast.classList.remove('show');
@@ -1758,16 +1833,27 @@
     function deleteDebt(id) {
         const debt = debts.find(d => d.id === id);
         if (!debt) return;
-        lastDeleted = { debt: JSON.parse(JSON.stringify(debt)), index: debts.findIndex(d => d.id === id) };
+        lastDeleted = { type: 'debt', item: JSON.parse(JSON.stringify(debt)), index: debts.findIndex(d => d.id === id) };
         debts = debts.filter(d => d.id !== id);
         renderAll();
         renderHistory();
         showToast(`Deleted "${debt.name}"`, true);
     }
+    function deleteIncome(id) {
+        const inc = incomes.find(i => i.id === id);
+        if (!inc) return;
+        lastDeleted = { type: 'income', item: JSON.parse(JSON.stringify(inc)), index: incomes.findIndex(i => i.id === id) };
+        incomes = incomes.filter(i => i.id !== id);
+        renderAll();
+        showToast(`Deleted "${inc.name}"`, true);
+    }
     function undoDelete() {
         if (!lastDeleted) return;
-        const { debt, index } = lastDeleted;
-        debts.splice(Math.min(index, debts.length), 0, debt);
+        if (lastDeleted.type === 'debt') {
+            debts.splice(Math.min(lastDeleted.index, debts.length), 0, lastDeleted.item);
+        } else if (lastDeleted.type === 'income') {
+            incomes.splice(Math.min(lastDeleted.index, incomes.length), 0, lastDeleted.item);
+        }
         lastDeleted = null;
         hideToast();
         renderAll();
@@ -1782,6 +1868,41 @@
         if (newIdx < 0 || newIdx >= debts.length) return;
         [debts[idx], debts[newIdx]] = [debts[newIdx], debts[idx]];
         renderAll();
+    }
+
+    // ---- Render income ----
+    function renderIncome() {
+        if (incomes.length === 0) {
+            incomeListEl.innerHTML = `<div class="income-empty">No income sources yet. Add one above.</div>`;
+        } else {
+            let html = '';
+            incomes.forEach(inc => {
+                const cls = inc.cutoff === 1 ? 'cutoff-1' : 'cutoff-2';
+                const cutoffLabel = inc.cutoff === 1 ? '1st (1–15)' : '2nd (16–31)';
+                html += `
+                    <div class="income-item ${cls}" data-id="${inc.id}">
+                        <div class="income-name">${escapeHtml(inc.name)}</div>
+                        <div class="income-amount">${formatCurrency(inc.amount)}</div>
+                        <div class="income-cutoff">${cutoffLabel}</div>
+                        <div class="income-actions">
+                            <button class="icon-btn edit-income" data-id="${inc.id}" title="Edit">✏️</button>
+                            <button class="icon-btn remove remove-income" data-id="${inc.id}" title="Delete">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            incomeListEl.innerHTML = html;
+        }
+
+        const c1 = getIncomeCutoff1();
+        const c2 = getIncomeCutoff2();
+        const total = c1 + c2;
+        incomeCutoff1Total.textContent = formatCurrency(c1);
+        incomeCutoff2Total.textContent = formatCurrency(c2);
+        incomeTotal.textContent = formatCurrency(total);
+
+        summarySalary1.textContent = formatCurrency(c1);
+        summarySalary2.textContent = formatCurrency(c2);
     }
 
     // ---- Render debt list ----
@@ -1810,9 +1931,7 @@
                 progress = getInstallmentProgress(debt, curYear, curMonth);
             } else if (debt.dueDate) {
                 const dt = new Date(debt.dueDate + 'T00:00:00');
-                if (!isNaN(dt.getTime())) {
-                    activeThisMonth = (dt.getFullYear() === curYear && dt.getMonth() === curMonth);
-                }
+                if (!isNaN(dt.getTime())) activeThisMonth = (dt.getFullYear() === curYear && dt.getMonth() === curMonth);
             }
             const paid = activeThisMonth && isPaid(debt.id, curYear, curMonth);
             const halfPaid = activeThisMonth && isHalfPaid(debt.id, curYear, curMonth);
@@ -1824,17 +1943,13 @@
                 const em = debt.startMonth !== undefined ? monthNames[(debt.startMonth + debt.months - 1) % 12] : '?';
                 const ey = debt.startYear + Math.floor((debt.startMonth + debt.months - 1) / 12);
                 dateDisplay = `${sm} ${debt.startYear} – ${em} ${ey}`;
-
                 const isTwice = debt.frequency === 'twice';
                 const day1 = debt.dueDay || 15;
                 const day2 = debt.dueDay2 || 30;
-                if (isTwice) {
-                    cutoffLabel = `Two payments/mo · day ${day1} & ${day2}`;
-                } else {
-                    cutoffLabel = getCutoffFromDay(day1) === 1 ? `1st cutoff (day ${day1})` : `2nd cutoff (day ${day1})`;
-                }
+                if (isTwice) cutoffLabel = `Two payments/mo · day ${day1} & ${day2}`;
+                else cutoffLabel = getCutoffFromDay(day1) === 1 ? `1st cutoff (day ${day1})` : `2nd cutoff (day ${day1})`;
 
-                const prog = progress || { status: 'active', monthsLeft: debt.months, monthsPaid: 0, percent: 0, totalMonths: debt.months, currentMonth: 1 };
+                const prog = progress || { status: 'active', monthsLeft: debt.months, monthsPaid: 0, percent: 0, totalMonths: debt.months };
                 if (prog.status === 'completed') statusClass += ' completed';
                 else if (prog.monthsLeft <= 2 && prog.status === 'active') statusClass += ' nearly-done';
                 if (paid) statusClass += ' paid';
@@ -1860,52 +1975,39 @@
                         else if (s.isCurrent) dotClass += ' current';
                         else if (s.isFuture) dotClass += ' future';
                         const label = s.paid ? '✓' : (s.halfPaid ? '◐' : (i+1));
-                        return `<div class="${dotClass}" title="Month ${i+1}${s.paid?' · Paid':(s.halfPaid?' · Half paid':'')}">${label}</div>`;
+                        return `<div class="${dotClass}">${label}</div>`;
                     }).join('');
-
                     progressHTML = `
                         <div class="inst-progress">
                             <div class="inst-progress-header">
                                 <span>📊 ${prog.monthsPaid} of ${prog.totalMonths} months paid</span>
-                                <span class="months-left ${prog.monthsLeft <= 2 ? 'urgent' : ''}">
-                                    ${prog.status === 'completed' ? '✓ Done!' : `${prog.monthsLeft} month${prog.monthsLeft !== 1 ? 's' : ''} left`}
-                                </span>
+                                <span class="months-left ${prog.monthsLeft <= 2 ? 'urgent' : ''}">${prog.status === 'completed' ? '✓ Done!' : `${prog.monthsLeft} month${prog.monthsLeft !== 1 ? 's' : ''} left`}</span>
                             </div>
-                            <div class="inst-progress-bar">
-                                <div class="inst-progress-fill ${fillClass}" style="width: ${prog.percent}%"></div>
-                            </div>
+                            <div class="inst-progress-bar"><div class="inst-progress-fill ${fillClass}" style="width: ${prog.percent}%"></div></div>
                             <div class="inst-dots">${dotsHTML}</div>
-                        </div>
-                    `;
+                        </div>`;
                 }
 
-                // Paid buttons — 1 or 2 depending on frequency
                 let paidButtons = '';
                 if (activeThisMonth && !paid && !halfPaid) {
-                    // Not yet paid — show button(s)
                     if (isTwice) {
-                        paidButtons = `<button class="icon-btn paid-btn" data-id="${debt.id}" data-half="1" title="Mark 1st half paid">✅½</button>
-                                       <button class="icon-btn paid-btn" data-id="${debt.id}" data-half="2" title="Mark 2nd half paid">✅½</button>`;
+                        paidButtons = `<button class="icon-btn paid-btn" data-id="${debt.id}" data-half="1" title="Mark 1st half">✅½</button>
+                                       <button class="icon-btn paid-btn" data-id="${debt.id}" data-half="2" title="Mark 2nd half">✅½</button>`;
                     } else {
                         paidButtons = `<button class="icon-btn paid-btn" data-id="${debt.id}" data-half="all" title="Mark paid">✅</button>`;
                     }
                 } else if (activeThisMonth && halfPaid) {
-                    // One half paid — show remaining + undo option
                     const rec = payments[getYearMonthKey(curYear, curMonth)] && payments[getYearMonthKey(curYear, curMonth)][debt.id];
                     if (rec && rec.paid1 && !rec.paid2) {
                         paidButtons = `<button class="icon-btn paid-btn half-paid" data-id="${debt.id}" data-half="1" title="Unmark 1st half">↺½</button>
-                                       <button class="icon-btn paid-btn" data-id="${debt.id}" data-half="2" title="Mark 2nd half paid">✅½</button>`;
+                                       <button class="icon-btn paid-btn" data-id="${debt.id}" data-half="2" title="Mark 2nd half">✅½</button>`;
                     } else if (rec && !rec.paid1 && rec.paid2) {
-                        paidButtons = `<button class="icon-btn paid-btn" data-id="${debt.id}" data-half="1" title="Mark 1st half paid">✅½</button>
+                        paidButtons = `<button class="icon-btn paid-btn" data-id="${debt.id}" data-half="1" title="Mark 1st half">✅½</button>
                                        <button class="icon-btn paid-btn half-paid" data-id="${debt.id}" data-half="2" title="Unmark 2nd half">↺½</button>`;
                     }
                 } else if (activeThisMonth && paid) {
-                    // Fully paid — show undo
-                    if (isTwice) {
-                        paidButtons = `<button class="icon-btn paid-btn is-paid" data-id="${debt.id}" data-half="all" title="Unmark both halves">↺↺</button>`;
-                    } else {
-                        paidButtons = `<button class="icon-btn paid-btn is-paid" data-id="${debt.id}" data-half="all" title="Mark unpaid">↺</button>`;
-                    }
+                    if (isTwice) paidButtons = `<button class="icon-btn paid-btn is-paid" data-id="${debt.id}" data-half="all" title="Unmark both">↺↺</button>`;
+                    else paidButtons = `<button class="icon-btn paid-btn is-paid" data-id="${debt.id}" data-half="all" title="Unmark">↺</button>`;
                 }
 
                 html += `
@@ -1933,7 +2035,6 @@
                         </div>
                     </div>`;
             } else {
-                // One-time
                 if (debt.dueDate) {
                     const dd = new Date(debt.dueDate + 'T00:00:00');
                     if (!isNaN(dd.getTime())) {
@@ -1948,10 +2049,7 @@
                 } else { dateDisplay = 'No date'; badgeText = '📅 No date'; }
                 if (paid) statusClass += ' paid';
                 const paidBadge = paid ? `<span class="paid-badge">✓ Paid</span>` : '';
-
-                const paidBtn = activeThisMonth
-                    ? `<button class="icon-btn paid-btn ${paid?'is-paid':''}" data-id="${debt.id}" data-half="all" title="${paid?'Mark unpaid':'Mark paid'}">${paid?'↺':'✅'}</button>`
-                    : '';
+                const paidBtn = activeThisMonth ? `<button class="icon-btn paid-btn ${paid?'is-paid':''}" data-id="${debt.id}" data-half="all" title="${paid?'Mark unpaid':'Mark paid'}">${paid?'↺':'✅'}</button>` : '';
 
                 html += `
                     <div class="debt-item ${statusClass}" data-id="${debt.id}">
@@ -1981,7 +2079,6 @@
         debtListContainer.innerHTML = html;
     }
 
-    // ---- Payment schedule ----
     function renderPaymentSchedule() {
         const { year, month } = getCurrentYearMonth();
         const key = getYearMonthKey(year, month);
@@ -1990,7 +2087,6 @@
         if (active.length === 0) {
             html = `<div class="schedule-item text-muted-small">No active debts this month.</div>`;
         } else {
-            // Build "entries" — each entry is a payable item (can be 2 rows for twice-a-month)
             const entries = [];
             active.forEach(d => {
                 const cat = getCategoryInfo(d.category);
@@ -2001,64 +2097,37 @@
                     const rec = payments[key] && payments[key][d.id];
                     const p1 = rec && rec.paid1;
                     const p2 = rec && rec.paid2;
-                    entries.push({
-                        name: `${d.name} ½`, cat, day: day1, amount: half, paid: !!p1,
-                        debtId: d.id, isInstallment: true, monthsLeft: (getInstallmentProgress(d, year, month) || {}).monthsLeft
-                    });
-                    entries.push({
-                        name: `${d.name} ½`, cat, day: day2, amount: half, paid: !!p2,
-                        debtId: d.id, isInstallment: true, monthsLeft: (getInstallmentProgress(d, year, month) || {}).monthsLeft
-                    });
+                    entries.push({ name: `${d.name} ½`, cat, day: day1, amount: half, paid: !!p1, isInstallment: true, monthsLeft: (getInstallmentProgress(d, year, month) || {}).monthsLeft });
+                    entries.push({ name: `${d.name} ½`, cat, day: day2, amount: half, paid: !!p2, isInstallment: true, monthsLeft: (getInstallmentProgress(d, year, month) || {}).monthsLeft });
                 } else if (d.isInstallment) {
                     const day = d.dueDay || 15;
                     const prog = getInstallmentProgress(d, year, month);
-                    entries.push({
-                        name: d.name, cat, day, amount: d.amount,
-                        paid: isPaid(d.id, year, month),
-                        debtId: d.id, isInstallment: true, monthsLeft: prog ? prog.monthsLeft : 0
-                    });
+                    entries.push({ name: d.name, cat, day, amount: d.amount, paid: isPaid(d.id, year, month), isInstallment: true, monthsLeft: prog ? prog.monthsLeft : 0 });
                 } else if (d.dueDate) {
                     const dt = new Date(d.dueDate + 'T00:00:00');
-                    if (!isNaN(dt.getTime())) {
-                        entries.push({
-                            name: d.name, cat, day: dt.getDate(), amount: d.amount,
-                            paid: isPaid(d.id, year, month),
-                            debtId: d.id, isInstallment: false
-                        });
-                    }
+                    if (!isNaN(dt.getTime())) entries.push({ name: d.name, cat, day: dt.getDate(), amount: d.amount, paid: isPaid(d.id, year, month), isInstallment: false });
                 }
             });
-
             const c1 = entries.filter(e => e.day <= 15);
             const c2 = entries.filter(e => e.day > 15);
-
             const renderList = (list) => list.map(e => {
                 let suffix = '';
-                if (e.isInstallment && !e.paid && e.monthsLeft <= 2 && e.monthsLeft > 0) {
-                    suffix = ` <span style="color:#f39c12;font-weight:700;">· ${e.monthsLeft} left!</span>`;
-                }
+                if (e.isInstallment && !e.paid && e.monthsLeft <= 2 && e.monthsLeft > 0) suffix = ` <span style="color:#f39c12;font-weight:700;">· ${e.monthsLeft} left!</span>`;
                 return `<div class="schedule-item ${e.paid?'is-paid':''}"><span>${e.cat.emoji} ${escapeHtml(e.name)} <span class="sched-date">(day ${e.day})</span>${e.paid?' ✓':''}${suffix}</span><span class="sched-amount">${formatCurrency(e.amount)}</span></div>`;
             }).join('');
-
-            if (c1.length > 0) {
-                html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;">1st cutoff (1–15)</div>`;
-                html += renderList(c1);
-            }
-            if (c2.length > 0) {
-                if (c1.length > 0) html += `<div style="margin-top:0.6rem;margin-bottom:0.3rem;border-top:1px solid #2b5f78;"></div>`;
-                html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;margin-top:0.4rem;">2nd cutoff (16–31)</div>`;
-                html += renderList(c2);
-            }
+            if (c1.length > 0) { html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;">1st cutoff (1–15)</div>`; html += renderList(c1); }
+            if (c2.length > 0) { if (c1.length > 0) html += `<div style="margin-top:0.6rem;margin-bottom:0.3rem;border-top:1px solid #2b5f78;"></div>`; html += `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:#b0d0e0;font-weight:500;margin-top:0.4rem;">2nd cutoff (16–31)</div>`; html += renderList(c2); }
         }
         paymentScheduleContainer.innerHTML = html;
     }
 
     function renderAll() {
+        renderIncome();
         renderDebtList();
         debtCountSpan.textContent = debts.length + (debts.length === 1 ? ' item' : ' items');
 
         const { year, month } = getCurrentYearMonth();
-        const s1 = getSalary1(), s2 = getSalary2();
+        const s1 = getIncomeCutoff1(), s2 = getIncomeCutoff2();
         const totalSalary = s1 + s2;
         const activeAll = getActiveDebts();
         const activeUnpaid = getUnpaidActiveDebts();
@@ -2068,9 +2137,6 @@
         const { cutoff1Total, cutoff2Total } = calculateCutoffDebts();
         const paidCount = activeAll.filter(d => isPaid(d.id, year, month)).length;
 
-        totalSalaryDisplay.textContent = formatCurrency(totalSalary);
-        summarySalary1.textContent = formatCurrency(s1);
-        summarySalary2.textContent = formatCurrency(s2);
         summaryCutoff1Debt.textContent = `Debt due: ${formatCurrency(cutoff1Total)}`;
         summaryCutoff2Debt.textContent = `Debt due: ${formatCurrency(cutoff2Total)}`;
         cutoff1DebtDisplay.textContent = formatCurrency(cutoff1Total);
@@ -2089,7 +2155,6 @@
         scheduleSave();
     }
 
-    // ---- History ----
     function renderHistory() {
         const keys = Object.keys(payments).sort().reverse();
         if (keys.length === 0) {
@@ -2098,7 +2163,6 @@
         }
         const currentKey = getYearMonthKey(...Object.values(getCurrentYearMonth()));
         let html = '';
-
         keys.forEach(key => {
             const [y, m] = key.split('-').map(Number);
             const monthLabel = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
@@ -2110,27 +2174,13 @@
                 const amount = info.amount || 0;
                 const fullyPaid = info.paid || (info.paid1 && info.paid2);
                 const halfPaid = !fullyPaid && (info.paid1 || info.paid2);
-                let displayAmount = amount;
-                let status = 'paid';
-                if (isTwice) {
-                    if (fullyPaid) { displayAmount = amount; status = 'paid'; }
-                    else if (halfPaid) { displayAmount = amount / 2; status = 'half'; }
-                }
-                return {
-                    debtId: parseInt(debtId, 10),
-                    name: info.name,
-                    category: info.category || 'other',
-                    amount: displayAmount,
-                    fullAmount: amount,
-                    status,
-                    isTwice
-                };
+                let displayAmount = amount, status = 'paid';
+                if (isTwice && halfPaid) { displayAmount = amount / 2; status = 'half'; }
+                return { name: info.name, category: info.category || 'other', amount: displayAmount, status, isTwice };
             });
-
             const totalPaid = entries.reduce((s, e) => s + e.amount, 0);
-            const salary = (getSalary1() + getSalary2());
+            const salary = getTotalIncome();
             const monthBalance = salary - totalPaid;
-
             html += `
                 <div class="history-month">
                     <div class="history-month-header">
@@ -2139,7 +2189,7 @@
                     </div>
                     <div class="history-summary">
                         <div class="history-stat"><div class="label">Total Paid</div><div class="val paid">${formatCurrency(totalPaid)}</div></div>
-                        <div class="history-stat"><div class="label">Salary (ref.)</div><div class="val">${formatCurrency(salary)}</div></div>
+                        <div class="history-stat"><div class="label">Income (ref.)</div><div class="val">${formatCurrency(salary)}</div></div>
                         <div class="history-stat"><div class="label">Balance</div><div class="val ${monthBalance >= 0 ? 'balance-pos' : 'balance-neg'}">${formatCurrency(monthBalance)}</div></div>
                     </div>
                     <div class="history-debts">
@@ -2158,60 +2208,52 @@
         historyContainer.innerHTML = html;
     }
 
-    // ---- Paid toggle (handles half) ----
+    // ---- Paid toggle ----
     function togglePaid(debtId, half = 'all') {
         const { year, month } = getCurrentYearMonth();
         const key = getYearMonthKey(year, month);
         if (!payments[key]) payments[key] = {};
         const debt = debts.find(d => d.id === debtId);
         if (!debt) return;
-
         const isTwice = debt.isInstallment && debt.frequency === 'twice';
         let rec = payments[key][debtId];
-
-        // Initialize record if missing
         if (!rec) {
-            rec = {
-                paidAt: new Date().toISOString(),
-                amount: debt.amount,
-                name: debt.name,
-                category: debt.category || 'other'
-            };
+            rec = { paidAt: new Date().toISOString(), amount: debt.amount, name: debt.name, category: debt.category || 'other' };
             payments[key][debtId] = rec;
         }
-
         if (half === 'all') {
-            // Toggle whole thing
             if (isTwice) {
-                if (rec.paid1 && rec.paid2) {
-                    // Unmark both
-                    delete rec.paid1; delete rec.paid2;
-                } else {
-                    // Mark both
-                    rec.paid1 = true;
-                    rec.paid2 = true;
-                }
+                if (rec.paid1 && rec.paid2) { delete rec.paid1; delete rec.paid2; }
+                else { rec.paid1 = true; rec.paid2 = true; }
             } else {
-                if (rec.paid) delete rec.paid;
-                else rec.paid = true;
+                if (rec.paid) delete rec.paid; else rec.paid = true;
             }
         } else if (half === '1') {
-            if (rec.paid1) delete rec.paid1;
-            else rec.paid1 = true;
+            if (rec.paid1) delete rec.paid1; else rec.paid1 = true;
         } else if (half === '2') {
-            if (rec.paid2) delete rec.paid2;
-            else rec.paid2 = true;
+            if (rec.paid2) delete rec.paid2; else rec.paid2 = true;
         }
-
-        // Clean up empty records
         const r = payments[key][debtId];
         if (!r.paid && !r.paid1 && !r.paid2) {
             delete payments[key][debtId];
             if (Object.keys(payments[key]).length === 0) delete payments[key];
         }
-
         renderAll();
         renderHistory();
+    }
+
+    // ---- Add income ----
+    function addIncome() {
+        const name = incomeNameInput.value.trim();
+        const amount = parseFloat(incomeAmountInput.value);
+        const cutoff = parseInt(incomeCutoffInput.value, 10);
+        if (!name) { alert('Enter an income name.'); incomeNameInput.focus(); return; }
+        if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); incomeAmountInput.focus(); return; }
+        incomes.push({ id: nextIncomeId++, name, amount, cutoff: cutoff === 2 ? 2 : 1 });
+        incomeNameInput.value = '';
+        incomeAmountInput.value = '';
+        incomeNameInput.focus();
+        renderAll();
     }
 
     // ---- Add debt ----
@@ -2220,10 +2262,8 @@
         const amount = parseFloat(debtAmountInput.value);
         const category = debtCategoryInput.value || 'other';
         const dueDate = debtDateInput.value;
-
         if (!name) { alert('Enter a debt name.'); debtNameInput.focus(); return; }
         if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); debtAmountInput.focus(); return; }
-
         if (currentType === 'onetime') {
             debts.push({ id: nextId++, name, amount, category, dueDate: dueDate || null, isInstallment: false });
         } else {
@@ -2232,25 +2272,14 @@
             if (!startVal) { alert('Select a start month.'); return; }
             if (isNaN(months) || months < 2) { alert('Minimum 2 months.'); return; }
             const [y, m] = startVal.split('-').map(Number);
-
             const day1 = clampDay(dueDay1Input.value) || '15';
             let day2 = null;
             if (currentFreq === 'twice') {
                 day2 = clampDay(dueDay2Input.value) || '30';
                 if (day1 === day2) { alert('The two due days must be different.'); return; }
             }
-
-            debts.push({
-                id: nextId++, name, amount, category,
-                isInstallment: true,
-                startYear: y, startMonth: m - 1,
-                months,
-                frequency: currentFreq,
-                dueDay: parseInt(day1, 10),
-                dueDay2: day2 ? parseInt(day2, 10) : null
-            });
+            debts.push({ id: nextId++, name, amount, category, isInstallment: true, startYear: y, startMonth: m - 1, months, frequency: currentFreq, dueDay: parseInt(day1, 10), dueDay2: day2 ? parseInt(day2, 10) : null });
         }
-
         debtNameInput.value = '';
         debtAmountInput.value = '';
         debtDateInput.value = '';
@@ -2260,23 +2289,14 @@
 
     function clearAllDebts() {
         if (debts.length === 0) return;
-        if (confirm('Remove all debts? This cannot be undone.')) {
-            debts = [];
-            renderAll();
-            renderHistory();
-        }
+        if (confirm('Remove all debts? This cannot be undone.')) { debts = []; renderAll(); renderHistory(); }
     }
 
     function resetAll() {
         const input = prompt('⚠️ This will DELETE all data.\n\nType your sync code to confirm:');
         if (input === null) return;
-        if (!syncCode || input.trim().toUpperCase() !== syncCode) {
-            alert('Sync code does not match. Reset cancelled.');
-            return;
-        }
-        salary1Input.value = '1500.00';
-        salary2Input.value = '1500.00';
-        debts = []; payments = {}; nextId = 1;
+        if (!syncCode || input.trim().toUpperCase() !== syncCode) { alert('Sync code does not match.'); return; }
+        debts = []; payments = {}; incomes = []; nextId = 1; nextIncomeId = 1;
         renderAll(); renderHistory();
         showToast('✅ All data reset', false, 'success');
     }
@@ -2292,44 +2312,39 @@
 
     function setType(type) {
         currentType = type;
-        typeToggle.querySelectorAll('button').forEach(b => {
-            b.classList.toggle('active', b.dataset.type === type);
-        });
+        typeToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.type === type));
         installmentFields.classList.toggle('visible', type === 'installment');
         dateLabel.textContent = type === 'installment' ? '📅 Due day (from date)' : '📅 Payment date';
     }
 
     function setFreq(freq) {
         currentFreq = freq;
-        frequencyToggle.querySelectorAll('button').forEach(b => {
-            b.classList.toggle('active', b.dataset.freq === freq);
-        });
+        frequencyToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.freq === freq));
         dueDay2Group.style.display = freq === 'twice' ? 'block' : 'none';
         dueDay1Label.textContent = freq === 'twice' ? '📅 Due day 1' : '📅 Due day';
-        installmentInfo.textContent = freq === 'twice'
-            ? 'ℹ️ Amount splits into 2 payments — one for each due day.'
-            : 'ℹ️ Progress is tracked automatically each month.';
+        installmentInfo.textContent = freq === 'twice' ? 'ℹ️ Amount splits into 2 payments — one for each due day.' : 'ℹ️ Progress is tracked automatically each month.';
     }
 
-    // ---- Edit modal ----
+    function setEditFreq(freq) {
+        editingFreq = freq;
+        editFrequencyToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.freq === freq));
+        editDueDay2Group.style.display = freq === 'twice' ? 'block' : 'none';
+        editDueDay1Label.textContent = freq === 'twice' ? '📅 Due day 1' : '📅 Due day';
+    }
+
+    // ---- Edit debt modal ----
     function openEditModal(id) {
         const debt = debts.find(d => d.id === id);
         if (!debt) return;
         editingDebtId = id;
         editingType = debt.isInstallment ? 'installment' : 'onetime';
         editingFreq = debt.frequency === 'twice' ? 'twice' : 'once';
-
         editName.value = debt.name;
         editAmount.value = debt.amount;
         editCategory.value = debt.category || 'other';
-
-        editTypeToggle.querySelectorAll('button').forEach(b => {
-            b.classList.toggle('active', b.dataset.type === editingType);
-        });
+        editTypeToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.type === editingType));
         editInstallmentFields.classList.toggle('visible', editingType === 'installment');
         editDateGroup.style.display = editingType === 'installment' ? 'none' : 'block';
-        editDateLabel.textContent = '📅 Payment date';
-
         if (debt.isInstallment) {
             editMonths.value = debt.months;
             editStartMonth.value = `${debt.startYear}-${pad2(debt.startMonth + 1)}`;
@@ -2343,41 +2358,20 @@
             editStartMonth.value = `${t.getFullYear()}-${pad2(t.getMonth() + 1)}`;
             setEditFreq('once');
         }
-
         editModal.classList.add('show');
         setTimeout(() => editName.focus(), 100);
     }
-
-    function setEditFreq(freq) {
-        editingFreq = freq;
-        editFrequencyToggle.querySelectorAll('button').forEach(b => {
-            b.classList.toggle('active', b.dataset.freq === freq);
-        });
-        editDueDay2Group.style.display = freq === 'twice' ? 'block' : 'none';
-        editDueDay1Label.textContent = freq === 'twice' ? '📅 Due day 1' : '📅 Due day';
-    }
-
-    function closeEditModal() {
-        editModal.classList.remove('show');
-        editingDebtId = null;
-    }
-
+    function closeEditModal() { editModal.classList.remove('show'); editingDebtId = null; }
     function saveEdit() {
         if (editingDebtId === null) return;
         const debt = debts.find(d => d.id === editingDebtId);
         if (!debt) { closeEditModal(); return; }
-
         const name = editName.value.trim();
         const amount = parseFloat(editAmount.value);
         const category = editCategory.value || 'other';
-
         if (!name) { alert('Enter a debt name.'); editName.focus(); return; }
         if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); editAmount.focus(); return; }
-
-        debt.name = name;
-        debt.amount = amount;
-        debt.category = category;
-
+        debt.name = name; debt.amount = amount; debt.category = category;
         if (editingType === 'installment') {
             const months = parseInt(editMonths.value, 10);
             const startVal = editStartMonth.value;
@@ -2391,11 +2385,8 @@
                 if (day1 === day2) { alert('The two due days must be different.'); return; }
             }
             debt.isInstallment = true;
-            debt.startYear = y;
-            debt.startMonth = m - 1;
-            debt.months = months;
-            debt.frequency = editingFreq;
-            debt.dueDay = parseInt(day1, 10);
+            debt.startYear = y; debt.startMonth = m - 1; debt.months = months;
+            debt.frequency = editingFreq; debt.dueDay = parseInt(day1, 10);
             debt.dueDay2 = day2 ? parseInt(day2, 10) : null;
             delete debt.dueDate;
         } else {
@@ -2405,6 +2396,32 @@
             delete debt.frequency; delete debt.dueDay; delete debt.dueDay2;
         }
         closeEditModal();
+        renderAll();
+    }
+
+    // ---- Edit income modal ----
+    function openEditIncomeModal(id) {
+        const inc = incomes.find(i => i.id === id);
+        if (!inc) return;
+        editingIncomeId = id;
+        editIncomeName.value = inc.name;
+        editIncomeAmount.value = inc.amount;
+        editIncomeCutoff.value = String(inc.cutoff);
+        editIncomeModal.classList.add('show');
+        setTimeout(() => editIncomeName.focus(), 100);
+    }
+    function closeEditIncomeModal() { editIncomeModal.classList.remove('show'); editingIncomeId = null; }
+    function saveEditIncome() {
+        if (editingIncomeId === null) return;
+        const inc = incomes.find(i => i.id === editingIncomeId);
+        if (!inc) { closeEditIncomeModal(); return; }
+        const name = editIncomeName.value.trim();
+        const amount = parseFloat(editIncomeAmount.value);
+        const cutoff = parseInt(editIncomeCutoff.value, 10);
+        if (!name) { alert('Enter a name.'); editIncomeName.focus(); return; }
+        if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount.'); editIncomeAmount.focus(); return; }
+        inc.name = name; inc.amount = amount; inc.cutoff = cutoff === 2 ? 2 : 1;
+        closeEditIncomeModal();
         renderAll();
     }
 
@@ -2422,34 +2439,30 @@
     }
 
     // ---- Event listeners ----
+    addIncomeBtn.addEventListener('click', addIncome);
+    incomeNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); incomeAmountInput.focus(); } });
+    incomeAmountInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); addIncome(); } });
+
     addDebtBtn.addEventListener('click', addDebt);
     clearDebtsBtn.addEventListener('click', clearAllDebts);
     resetAllBtn.addEventListener('click', resetAll);
 
-    typeToggle.addEventListener('click', e => {
-        const b = e.target.closest('button');
-        if (b && b.dataset.type) setType(b.dataset.type);
-    });
-    frequencyToggle.addEventListener('click', e => {
-        const b = e.target.closest('button');
-        if (b && b.dataset.freq) setFreq(b.dataset.freq);
-    });
+    typeToggle.addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.type) setType(b.dataset.type); });
+    frequencyToggle.addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.freq) setFreq(b.dataset.freq); });
 
-    debtNameInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') { e.preventDefault(); debtAmountInput.focus(); }
-    });
-    debtAmountInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') { e.preventDefault(); debtDateInput.focus(); }
+    debtNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtAmountInput.focus(); } });
+    debtAmountInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); debtDateInput.focus(); } });
+
+    incomeListEl.addEventListener('click', e => {
+        const editBtn = e.target.closest('.edit-income');
+        if (editBtn) { const id = parseInt(editBtn.dataset.id, 10); if (!isNaN(id)) openEditIncomeModal(id); return; }
+        const remBtn = e.target.closest('.remove-income');
+        if (remBtn) { const id = parseInt(remBtn.dataset.id, 10); if (!isNaN(id)) deleteIncome(id); return; }
     });
 
     debtListContainer.addEventListener('click', e => {
         const paidBtn = e.target.closest('.paid-btn');
-        if (paidBtn) {
-            const id = parseInt(paidBtn.dataset.id, 10);
-            const half = paidBtn.dataset.half || 'all';
-            if (!isNaN(id)) togglePaid(id, half);
-            return;
-        }
+        if (paidBtn) { const id = parseInt(paidBtn.dataset.id, 10); const half = paidBtn.dataset.half || 'all'; if (!isNaN(id)) togglePaid(id, half); return; }
         const editBtn = e.target.closest('.edit-debt');
         if (editBtn) { const id = parseInt(editBtn.dataset.id, 10); if (!isNaN(id)) openEditModal(id); return; }
         const removeBtn = e.target.closest('.remove-debt');
@@ -2460,13 +2473,8 @@
         if (downBtn && !downBtn.disabled) { const id = parseInt(downBtn.dataset.id, 10); if (!isNaN(id)) moveDebt(id, 'down'); return; }
     });
 
-    salary1Input.addEventListener('input', renderAll);
-    salary2Input.addEventListener('input', renderAll);
-
     connectBtn.addEventListener('click', () => connectToSyncCode(syncCodeInput.value));
-    syncCodeInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') connectToSyncCode(syncCodeInput.value);
-    });
+    syncCodeInput.addEventListener('keypress', e => { if (e.key === 'Enter') connectToSyncCode(syncCodeInput.value); });
     copyBtn.addEventListener('click', () => {
         if (!syncCode) { alert('Connect first.'); return; }
         navigator.clipboard.writeText(syncCode).then(() => {
@@ -2476,11 +2484,7 @@
     });
 
     importBtn.addEventListener('click', () => importFile.click());
-    importFile.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) handleImportFile(file);
-        e.target.value = '';
-    });
+    importFile.addEventListener('change', e => { const file = e.target.files[0]; if (file) handleImportFile(file); e.target.value = ''; });
     snapshotBtn.addEventListener('click', downloadSnapshot);
     toastBtn.addEventListener('click', () => { if (lastDeleted) undoDelete(); });
 
@@ -2491,31 +2495,34 @@
         const b = e.target.closest('button');
         if (b && b.dataset.type) {
             editingType = b.dataset.type;
-            editTypeToggle.querySelectorAll('button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === editingType);
-            });
+            editTypeToggle.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.type === editingType));
             editInstallmentFields.classList.toggle('visible', editingType === 'installment');
             editDateGroup.style.display = editingType === 'installment' ? 'none' : 'block';
         }
     });
-    editFrequencyToggle.addEventListener('click', e => {
-        const b = e.target.closest('button');
-        if (b && b.dataset.freq) setEditFreq(b.dataset.freq);
-    });
+    editFrequencyToggle.addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.freq) setEditFreq(b.dataset.freq); });
     editCancelBtn.addEventListener('click', closeEditModal);
     editSaveBtn.addEventListener('click', saveEdit);
     editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
+
+    editIncomeCancelBtn.addEventListener('click', closeEditIncomeModal);
+    editIncomeSaveBtn.addEventListener('click', saveEditIncome);
+    editIncomeModal.addEventListener('click', e => { if (e.target === editIncomeModal) closeEditIncomeModal(); });
+
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && editModal.classList.contains('show')) closeEditModal();
+        if (e.key === 'Escape') {
+            if (editModal.classList.contains('show')) closeEditModal();
+            if (editIncomeModal.classList.contains('show')) closeEditIncomeModal();
+        }
     });
 
     // Decimal & day inputs
-    enableDecimalInput(salary1Input, true);
-    enableDecimalInput(salary2Input, true);
+    enableDecimalInput(incomeAmountInput, true);
     enableDecimalInput(debtAmountInput, true);
     enableDecimalInput(installmentMonthsInput, false);
     enableDecimalInput(editAmount, true);
     enableDecimalInput(editMonths, false);
+    enableDecimalInput(editIncomeAmount, true);
     enableDayInput(dueDay1Input);
     enableDayInput(dueDay2Input);
     enableDayInput(editDueDay1Input);
